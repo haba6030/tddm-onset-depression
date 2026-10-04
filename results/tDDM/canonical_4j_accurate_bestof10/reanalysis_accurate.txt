@@ -1,0 +1,42 @@
+N = 351 (HC 205, DEP 146)
+=== 1. group comparisons ===
+  d_mean                     HC=0.737 DEP=0.540 diff=-0.197 SE=0.086 CI[-0.365, -0.028] t(295)=2.29 p=0.0226 d=-0.25 [-0.47, -0.04]
+  d_contrast                 HC=0.286 DEP=0.242 diff=-0.044 SE=0.267 CI[-0.570, +0.482] t(332)=0.17 p=0.8689 d=-0.02 [-0.23, 0.19]
+  thres                      HC=1.886 DEP=2.060 diff=+0.174 SE=0.051 CI[+0.073, +0.275] t(315)=3.39 p=0.0008 d=0.37 [0.15, 0.58]
+  nDT                        HC=2.016 DEP=2.181 diff=+0.165 SE=0.066 CI[+0.035, +0.294] t(287)=2.51 p=0.0128 d=0.28 [0.06, 0.49]
+  tau                        HC=0.804 DEP=1.013 diff=+0.209 SE=0.104 CI[+0.005, +0.413] t(299)=2.02 p=0.0444 d=0.22 [0.01, 0.43]
+
+=== 2. boundary rates ===
+  tol 0.05: d_contrast at bound 50.7% | nDT at ceiling 16.5% (HC 11.7% / DEP 23.3%)
+  tol 0.01: d_contrast at bound 50.4% | nDT at ceiling 15.1% (HC 10.2% / DEP 21.9%)
+  tau <= 0 (set to 0): 26.5% (n = 93; HC 28.3%, DEP 24.0%)
+
+=== 3. tau: robustness ===
+  excluding tau<=0 (n=93 dropped, n=258 kept):
+  tau                        HC=1.121 DEP=1.332 diff=+0.211 SE=0.115 CI[-0.015, +0.438] t(235)=1.84 p=0.0669 d=0.23 [-0.02, 0.48]
+  Wilcoxon W=16843 p=0.0431 HL shift=+0.122 CI[+0.00, +0.30] r=0.11
+  contrast weight inside bounds (n=173):
+  tau                        HC=0.620 DEP=0.943 diff=+0.324 SE=0.144 CI[+0.039, +0.608] t(170)=2.25 p=0.0260 d=0.34 [0.04, 0.64]
+  contrast weight at bound (n=178):
+  tau                        HC=0.934 DEP=1.118 diff=+0.184 SE=0.151 CI[-0.115, +0.483] t(109)=1.22 p=0.2254 d=0.20 [-0.12, 0.51]
+  interaction b=-0.140 SE=0.207 t(347)=-0.67 p=0.501 | BF01=3.88
+
+=== 4. CES-D, age, gender, correlations ===
+  CES-D ~ tau    r(349)=0.131 p=0.0144 CI[0.03, 0.23]
+  age ~ tau      r(349)=0.054 p=0.3123 CI[-0.05, 0.16]
+  tau ~ thres    r(349)=0.271 p=0.0000 CI[0.17, 0.37]
+  tau ~ medRT    r(349)=0.293 p=0.0000 CI[0.19, 0.39]
+  thres ~ medRT  r(349)=0.774 p=0.0000 CI[0.73, 0.81]
+  tau ~ group + age + gender: b=+0.236 SE=0.104 t(347)=2.26 p=0.0242 CI[0.031, 0.441]
+
+=== 5. ANCOVA ===
+  DEP                                    b=+0.209 SE=0.102 t(349)=2.04 p=0.0419 CI[0.008, 0.411] unique R2=1.2%
+  DEP + thres                            b=+0.120 SE=0.101 t(348)=1.19 p=0.2344 CI[-0.078, 0.318] unique R2=0.4%
+  DEP + thres + nDT                      b=+0.111 SE=0.101 t(347)=1.10 p=0.2733 CI[-0.088, 0.309] unique R2=0.3%
+  DEP + thres + nDT + d_mean             b=+0.122 SE=0.101 t(346)=1.20 p=0.2302 CI[-0.078, 0.321] unique R2=0.4%
+  DEP + thres + nDT + d_mean + medRT     b=+0.078 SE=0.101 t(345)=0.77 p=0.4417 CI[-0.121, 0.277] unique R2=0.2%
+
+=== 6. BIC ladder ===
+  dBIC(4j - 4a): mean +1.952 | median +3.316 | <0 20.8% | <-2 12.3% | >+2 64.7%
+  dBIC(4c - 4a): mean +0.162 | median +1.569 | <0 32.5% | <-2 19.1% | >+2 44.2%
+  dBIC(4j - 4c): mean +1.790 | median +2.281 | <0 10.0% | <-2 2.8% | >+2 59.5%

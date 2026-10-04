@@ -1,0 +1,49 @@
+[start] choicesig  2026-09-28 00:50:19
+[done ] choicesig  2026-09-28 00:52:39
+[start] rtsig  2026-09-28 00:52:39
+[done ] rtsig  2026-09-28 00:54:04
+[start] taurt  2026-09-28 00:54:04
+[done ] taurt  2026-09-28 00:57:29
+[start] contrastfirst  2026-09-28 00:57:29
+[done ] contrastfirst  2026-09-28 05:38:04
+[start] splithalf  2026-09-28 05:38:04
+[restart] 2026-09-28 11:55:46 C++ likelihood, CORES=8 (split-half restarted from scratch)
+[skip ] choicesig
+[skip ] rtsig
+[skip ] taurt
+[skip ] contrastfirst
+[start] splithalf  2026-09-28 11:55:46
+[done ] splithalf  2026-09-28 13:49:40
+[start] splithalf_contrast  2026-09-28 13:49:40
+[done ] splithalf_contrast  2026-09-28 14:31:17
+[start] nulltau  2026-09-28 14:31:17
+[done ] nulltau  2026-09-28 19:02:19
+[start] recovery  2026-09-28 19:02:19
+[done ] recovery  2026-09-28 19:25:21
+[start] ndtladder  2026-09-28 19:25:21
+[done ] ndtladder  2026-09-28 19:55:19
+[start] wgap0.05  2026-09-28 19:55:20
+[done ] wgap0.05  2026-09-28 20:22:55
+[start] wgap0.10  2026-09-28 20:22:55
+[done ] wgap0.10  2026-09-28 20:52:46
+[start] poscontrol  2026-09-28 20:52:46
+[restart] 2026-09-28 21:18:17 per-call seeds fixed (nulltau/wgap/poscontrol reps were identical); CORES=8
+[skip ] choicesig
+[skip ] rtsig
+[skip ] taurt
+[skip ] contrastfirst
+[skip ] splithalf
+[skip ] splithalf_contrast
+[start] nulltau  2026-09-28 21:18:17
+[done ] nulltau  2026-09-28 22:21:46
+[skip ] recovery
+[skip ] ndtladder
+[start] wgap0.05  2026-09-28 22:21:46
+[done ] wgap0.05  2026-09-28 22:49:27
+[start] wgap0.10  2026-09-28 22:49:27
+[done ] wgap0.10  2026-09-28 23:16:37
+[start] poscontrol  2026-09-28 23:16:37
+[done ] poscontrol  2026-09-29 01:27:18
+[start] ladder80  2026-09-29 01:27:18
+[done ] ladder80  2026-09-29 04:19:57
+[stage 6 finished] 2026-09-29 04:19:57

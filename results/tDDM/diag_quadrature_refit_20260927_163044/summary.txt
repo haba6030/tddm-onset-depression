@@ -1,0 +1,11 @@
+N = 351 | 25.7 min
+tau (accurate) : HC 0.502 DEP 0.786 | DEP-HC +0.284 t(304)=2.16 p=0.0317 
+tau (grid rep01): HC 0.565 DEP 0.937 | DEP-HC +0.371 t(303)=3.27 p=0.0012 
+d_mean         : HC 0.736 DEP 0.541 | DEP-HC -0.195 t(294)=-2.27 p=0.0239
+thres          : HC 1.886 DEP 2.060 | DEP-HC +0.174 t(315)=3.39 p=0.0008
+nDT            : HC 2.016 DEP 2.180 | DEP-HC +0.165 t(287)=2.50 p=0.0129
+d_contrast     : HC 0.331 DEP 0.215 | DEP-HC -0.115 t(331)=-0.43 p=0.6640
+tau<=0: 28.5% | tau>0 within 1 ms of a trial DT: 0.4% (grid canonical 97.7%, chance ~0.3%)
+r(tau accurate, tau grid) = 0.765
+dBIC(4j accurate - 4c): mean +1.795 | <0 10.0% | <-2 2.8%
+grid NLL at the accurate estimates minus accurate NLL: median +0.000

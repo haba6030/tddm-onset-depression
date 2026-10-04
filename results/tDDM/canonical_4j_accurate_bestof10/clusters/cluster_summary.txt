@@ -1,0 +1,55 @@
+N = 351 | bootstrap reps = 200 | CES-D: HC mean 5.7, DEP mean 29.3
+
+==== Set A: d_mean, thres, nDT ====
+chosen k = 3 (VVI) | best BIC by k: k1 -2966.6 | k2 -1357.3 | k3 -1346.7 | k4 -1376.8 | k5 -1393.2 | k6 -1421.7
+BIC(best k) - BIC(k = 1) = +1619.9 (mclust BIC: higher is better)
+bootstrap k: 2x15  3x75  4x54  5x26  6x30 
+bootstrap ARI vs full partition (k > 1 draws): median 0.39 [IQR 0.30, 0.58]
+ cluster   n DEP_pct  ces d_mean d_contrast thres  nDT   tau nDT_bound_pct
+       1 163    36.2 13.6  0.970      0.335  1.73 1.67 0.781          0.00
+       2 142    41.5 16.4  0.389      0.177  2.01 2.27 0.894          8.45
+       3  46    60.9 19.3  0.358      0.311  2.59 3.00 1.268        100.00
+ contrast_bound_pct tau0_pct tail10
+               55.2     28.8      1
+               46.5     28.2      2
+               47.8     13.0      7
+CES-D across clusters: Kruskal-Wallis chi2(2) = 8.57, p = 0.0138 | eta2 = 0.023
+HC/DEP across clusters: Fisher p = 0.0118
+
+==== Set B: d_mean, thres, tau ====
+chosen k = 6 (EVI) | best BIC by k: k1 -3007.3 | k2 -2858.4 | k3 -2839.8 | k4 -2857.2 | k5 -2793.2 | k6 -2780.0
+BIC(best k) - BIC(k = 1) = +227.3 (mclust BIC: higher is better)
+bootstrap k: 3x3  4x4  5x49  6x144 
+bootstrap ARI vs full partition (k > 1 draws): median 0.66 [IQR 0.57, 0.74]
+ cluster   n DEP_pct  ces d_mean d_contrast thres  nDT     tau nDT_bound_pct
+       1 102    31.4 12.7  0.834      0.267  1.62 1.92 0.63519          5.88
+       2  46    45.7 15.2  0.797     -0.336  2.36 2.25 0.64364         32.61
+       3 100    36.0 14.3  0.595      0.437  1.87 1.98 0.00193          7.00
+       4  76    50.0 18.5  0.714      0.359  2.00 2.15 2.27331         18.42
+       5  11    90.9 28.5 -1.178      0.497  2.17 2.61 0.79747         36.36
+       6  16    56.2 17.6  0.455      0.356  3.21 2.62 2.27764         75.00
+ contrast_bound_pct tau0_pct tail10
+               61.8        0      0
+               37.0        0      1
+               40.0       93      0
+               59.2        0      3
+               54.5        0      1
+               43.8        0      5
+CES-D across clusters: Kruskal-Wallis chi2(5) = 20.40, p = 0.0011 | eta2 = 0.058
+HC/DEP across clusters: Fisher p = 0.0009
+
+==== Set C: d_mean, d_contrast, thres, nDT, tau ====
+chosen k = 3 (VVI) | best BIC by k: k1 -4982.7 | k2 -2522.6 | k3 -962.0 | k4 -4487.0 | k5 -3933.1 | k6 -3899.5
+BIC(best k) - BIC(k = 1) = +4020.8 (mclust BIC: higher is better)
+bootstrap k: 2x4  3x18  4x36  5x68  6x74 
+bootstrap ARI vs full partition (k > 1 draws): median 0.50 [IQR 0.35, 0.61]
+ cluster   n DEP_pct  ces d_mean d_contrast thres  nDT   tau nDT_bound_pct
+       1 190    48.9 17.3  0.662     0.0364  2.03 2.10 0.827          16.8
+       2  66    33.3 12.3  0.744    -3.0000  1.85 2.13 0.909          15.2
+       3  95    32.6 14.1  0.579     3.0000  1.88 2.02 1.005          16.8
+ contrast_bound_pct tau0_pct tail10
+               8.95     30.5      2
+             100.00     16.7      3
+             100.00     25.3      5
+CES-D across clusters: Kruskal-Wallis chi2(2) = 8.39, p = 0.0151 | eta2 = 0.024
+HC/DEP across clusters: Fisher p = 0.0103

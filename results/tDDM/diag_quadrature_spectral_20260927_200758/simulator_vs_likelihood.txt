@@ -1,0 +1,12 @@
+case 1 (d1 0.8, d2 1.0, thres 1.9, tau 0.6) | likelihood P(upper) 0.9234, mean DT 1.2078, upper DT q10/50/90 0.459/1.073/2.217
+  old Euler P(upper) 0.9274 (+0.0040, SE 0.0012) | mean DT +17.1 ms (SE 3.5) | quantiles +9/+11/+28 ms
+  bridge    P(upper) 0.9250 (+0.0016, SE 0.0012) | mean DT -0.6 ms (SE 3.4) | quantiles +2/-4/-7 ms
+case 2 (d1 -0.5, d2 1.1, thres 2.1, tau 0.9) | likelihood P(upper) 0.5811, mean DT 2.0618, upper DT q10/50/90 0.845/2.109/4.630
+  old Euler P(upper) 0.5849 (+0.0038, SE 0.0023) | mean DT +29.1 ms (SE 7.2) | quantiles +32/+25/+46 ms
+  bridge    P(upper) 0.5781 (-0.0029, SE 0.0023) | mean DT -2.8 ms (SE 7.1) | quantiles +8/-10/+12 ms
+case 3 (d1 1.2, d2 -1.6, thres 1.5, tau 0.3) | likelihood P(upper) 0.5085, mean DT 1.0937, upper DT q10/50/90 0.217/0.579/1.950
+  old Euler P(upper) 0.5063 (-0.0022, SE 0.0023) | mean DT +39.4 ms (SE 4.3) | quantiles +7/+28/+79 ms
+  bridge    P(upper) 0.5068 (-0.0017, SE 0.0023) | mean DT +4.4 ms (SE 4.2) | quantiles -2/-3/+3 ms
+case 4 (d1 0.3, d2 0.0, thres 2.6, tau 0.0) | likelihood P(upper) 0.6891, mean DT 3.0013, upper DT q10/50/90 0.863/2.420/6.119
+  old Euler P(upper) 0.6925 (+0.0034, SE 0.0021) | mean DT +30.2 ms (SE 9.8) | quantiles +8/+44/+26 ms
+  bridge    P(upper) 0.6894 (+0.0003, SE 0.0021) | mean DT +13.9 ms (SE 9.7) | quantiles +3/+31/+30 ms

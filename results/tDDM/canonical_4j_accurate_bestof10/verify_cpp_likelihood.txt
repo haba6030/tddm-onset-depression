@@ -1,0 +1,14 @@
+== V1: stored canonical NLLs ==
+  mean-first      N = 351 | max |C++ - stored| = 4.5e-13
+  contrast-first  N = 351 | max |C++ - stored| = 7.1e-14
+== V2: random and near-zero-tau points, C++ vs R ==
+  3000 points | max |diff| 1.3e-10 | median 0.0e+00 | > 1e-9: 0
+== V3: simulated trial sets (controls) ==
+  300 simulated sets | max |diff| 5.9e-12
+== V4: full DEoptim fits, same seed ==
+  subject 375 | NLL R 37.3962176969  C++ 37.3962176969 | max |par diff| (tau<=0 -> 0) 0.0e+00 | 31.6 s vs 3.0 s
+  subject 437 | NLL R 36.3659013116  C++ 36.3659013116 | max |par diff| (tau<=0 -> 0) 0.0e+00 | 22.3 s vs 1.9 s
+  subject 341 | NLL R 44.4470125054  C++ 44.4470125054 | max |par diff| (tau<=0 -> 0) 3.8e-08 | 6.7 s vs 0.4 s
+  subject 273 | NLL R 31.3459881706  C++ 31.3459881706 | max |par diff| (tau<=0 -> 0) 0.0e+00 | 8.8 s vs 0.6 s
+== V5: forked workers ==
+  40 evaluations in 4 forked workers | max |parallel - sequential| 0.0e+00

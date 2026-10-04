@@ -1,0 +1,39 @@
+observed dtau (DEP - HC, tau<=0 -> 0) = 0.209 s, SE 0.104
+
+== positive control, 20 trials, 4 levels ==
+  40 points | sensitivity 0.381 [0.215, 0.547] (SE 0.082) | bias 0.161 (SE 0.016)
+  latent dtau: median +0.127 s | 95% [-0.467, +0.709] | P(>0) = 0.677
+== positive control, 80 trials, 2 levels ==
+  10 points | sensitivity 0.786 [0.400, 1.171] | bias 0.078 (SE 0.040)
+
+== null onset (true tau common) ==
+  8 reps | recovered 0.131 s (sd 0.114) = 63% of observed | residual 0.078 s, SE 0.111, p = 0.48
+  bias of group differences (HC - DEP, recovered - true): drift +0.027, threshold -0.010, contrast +0.005
+  r(tau_hat, thres_hat) mean 0.18 | r(tau_hat, CES-D) mean 0.068 (over 8 reps)
+  observed: r(tau, thres) 0.27 | r(tau, CES-D) 0.131
+  starting-point gap 0.05: recovered 0.160 s (sd 0.052, 5 reps)
+  starting-point gap 0.10: recovered 0.190 s (sd 0.093, 5 reps)
+
+== individual recovery ==
+  20 trials: r = -0.02 [-0.18, 0.14] | error SD 1.17 vs true SD 0.68 | bias -0.31 s
+  80 trials: r = 0.21 [0.05, 0.36] | error SD 1.01 vs true SD 0.68 | bias -0.23 s
+
+== non-decision-time bound ladder ==
+ bound nDT_median ceiling_001 ceiling_01 ceiling_05 ceiling_HC_05
+   1.5   1.500000   82.621083  83.190883  86.039886     86.829268
+   2.0   1.999997   51.851852  51.851852  53.276353     47.804878
+   2.5   2.022933   27.065527  27.065527  28.205128     23.902439
+   3.0   2.022933   14.529915  15.099715  16.524217     11.707317
+   3.5   2.022933    6.267806   6.267806   6.837607      4.390244
+ ceiling_DEP_05      dtau      p_dtau   beta_grp       p_grp beta_grp_medRT
+       84.93151 0.2579993 0.017718435 -0.2579993 0.015995896    -0.04515920
+       60.95890 0.3377137 0.001895970 -0.3377137 0.001502575    -0.15153305
+       34.24658 0.2767515 0.009041569 -0.2767515 0.007791025    -0.12395315
+       23.28767 0.2352722 0.024444558 -0.2352722 0.022443040    -0.10664073
+       10.27397 0.1881305 0.066665496 -0.1881305 0.064448723    -0.07952922
+ p_grp_medRT r_tau_medRT  tau_mean
+   0.6425636   0.4745034 1.1543875
+   0.1271426   0.4291881 1.0256554
+   0.2156041   0.3610559 0.9220556
+   0.2915881   0.3073995 0.8957874
+   0.4316825   0.2619906 0.8537283

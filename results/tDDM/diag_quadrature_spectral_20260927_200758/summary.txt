@@ -1,0 +1,34 @@
+== V0a: spectral vs closed-form Wiener density, drift1 == drift2 (200 configs) ==
+  max rel err 2.5e-08 (n = 194 with density > 1e-8)
+== V0b: spectral vs Monte Carlo (400k paths, 20 ms windows), 4 canonical trials ==
+  subject   2 | MC 0.147 0.136 0.111 | spectral 0.141 0.129 0.112 | grid30 at dt 0.922
+  subject   3 | MC 0.160 0.287 0.601 | spectral 0.165 0.290 0.599 | grid30 at dt 1.439
+  subject   4 | MC 0.123 0.144 0.184 | spectral 0.127 0.149 0.187 | grid30 at dt 1.106
+  subject   7 | MC 0.904 1.002 1.116 | spectral 0.904 1.001 1.119 | grid30 at dt 6.238
+== V1: 1000 random configurations, drift1 != drift2, rem 1e-7..3 s ==
+           n acc_median acc_max grid_median_ratio grid_max_ratio grid_min_ratio
+<10us    159   1.07e-13 1.00000          2.09e-09           1.85       1.86e-14
+10-100us  77   2.15e-14 1.00000          5.28e+00          15.50       1.14e-09
+0.1-1ms  106   1.69e-13 1.00000          9.38e-01           7.33       1.00e-13
+1-10ms   108   1.93e-14 0.65900          9.52e-01           1.00       3.72e-02
+10-100ms  96   6.27e-15 1.00000          9.99e-01           1.03       1.34e-09
+>100ms   118   1.57e-15 0.00389          1.00e+00           1.00       9.47e-01
+  accurate integral: fallback used 0 times
+== V2 [grid_canonical]: 4782 phase-2 trials, 341 participants ==
+  per trial  |log acc - log spectral|: median 3.3e-16, max 2.4e-13
+  per trial  log grid30 - log spectral: median -0.0000, max +2.740 (ratio 15.48)
+  per participant NLL(true) - NLL(grid30): mean 2.150, median 2.139 | accurate: max |diff| 2.3e-13
+  share of that gap carried by the single largest trial: median 100%
+  fallback used 0 times
+== V2 [accurate_rep01]: 2934 phase-2 trials, 253 participants ==
+  per trial  |log acc - log spectral|: median 2.2e-16, max 3.6e-13
+  per trial  log grid30 - log spectral: median -0.0000, max +0.000 (ratio 1.00)
+  per participant NLL(true) - NLL(grid30): mean -0.069, median -0.000 | accurate: max |diff| 6.6e-13
+  share of that gap carried by the single largest trial: median 3%
+  fallback used 0 times
+== J1: worst grid/true ratio over rem in [1e-7, 0.1] s, 50 random (v1, v2, a, tau) ==
+  ngrid   30 | worst ratio median 8.35, max 15.64 | at rem median 3.2e-05 s
+  ngrid  100 | worst ratio median 2.44, max 4.58 | at rem median 3.2e-05 s
+  ngrid  300 | worst ratio median 1.00, max 1.52 | at rem median 9.0e-02 s
+  ngrid 1000 | worst ratio median 1.00, max 1.00 | at rem median 1.0e-01 s
+  ngrid 3000 | worst ratio median 1.00, max 1.00 | at rem median 1.0e-01 s

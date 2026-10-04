@@ -1,0 +1,16 @@
+== accurate integral, best of 10 runs ==
+  d_mean                 HC 0.737 DEP 0.540 | DEP-HC -0.197 t(295)=-2.29 p=0.0226 d=-0.25 [-0.47, -0.04]
+  d_contrast             HC 0.286 DEP 0.242 | DEP-HC -0.044 t(332)=-0.17 p=0.8689 d=-0.02 [-0.23, 0.19]
+  thres                  HC 1.886 DEP 2.060 | DEP-HC +0.174 t(315)=3.39 p=0.0008 d=0.37 [0.15, 0.58]
+  nDT                    HC 2.016 DEP 2.181 | DEP-HC +0.165 t(287)=2.51 p=0.0128 d=0.28 [0.06, 0.49]
+  tau                    HC 0.536 DEP 0.818 | DEP-HC +0.283 t(311)=2.10 p=0.0364 d=0.23 [0.01, 0.44]
+== grid canonical, best of 10 runs ==
+  tau (grid)             HC 0.784 DEP 1.050 | DEP-HC +0.266 t(288)=2.97 p=0.0032 d=0.33 [0.11, 0.54]
+r(tau accurate, tau grid) = 0.685 | tau<=0 accurate 26.5% vs grid 2.8%
+tau>0 within 1 ms of a trial DT: 0.0%
+  excluding tau<=0:   tau>0                  HC 1.121 DEP 1.332 | DEP-HC +0.211 t(235)=1.84 p=0.0669 d=0.23 [-0.02, 0.48]
+  Wilcoxon p = 0.0294
+NLL range across runs: median 0.000
+dBIC(4j - 4c): mean +1.790 | <0 10.0% | <-2 2.8%
+dBIC(4j - 4a): mean +1.952 | <0 20.8% | <-2 12.3%
+dBIC(4c - 4a): mean +0.162 | <0 32.5% | <-2 19.1%

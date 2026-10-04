@@ -1,0 +1,25 @@
+    subject 2  tau 1.4374  dt 1.4374  (557s)
+      MC density  [dt-20ms, dt)     0.1467
+      MC density  [dt, dt+20ms)     0.1359
+      MC density  [dt+40, dt+60ms)  0.1105
+      engine grid30 at dt           0.9223
+      engine grid30 at dt+50ms      0.1122
+    subject 3  tau 0.1523  dt 0.1523  (135s)
+      MC density  [dt-20ms, dt)     0.1604
+      MC density  [dt, dt+20ms)     0.2869
+      MC density  [dt+40, dt+60ms)  0.6006
+      engine grid30 at dt           1.4389
+      engine grid30 at dt+50ms      0.5987
+    subject 4  tau 0.3821  dt 0.3822  (246s)
+      MC density  [dt-20ms, dt)     0.1230
+      MC density  [dt, dt+20ms)     0.1444
+      MC density  [dt+40, dt+60ms)  0.1844
+      engine grid30 at dt           1.1060
+      engine grid30 at dt+50ms      0.1868
+    subject 7  tau 0.1835  dt 0.1835  (134s)
+      MC density  [dt-20ms, dt)     0.9036
+      MC density  [dt, dt+20ms)     1.0018
+      MC density  [dt+40, dt+60ms)  1.1161
+      engine grid30 at dt           6.2377
+      engine grid30 at dt+50ms      1.1199
+    
