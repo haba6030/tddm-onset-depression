@@ -35,6 +35,7 @@ N = 351 (HC 205, DEP 146)
   DEP + thres + nDT                      b=+0.111 SE=0.101 t(347)=1.10 p=0.2733 CI[-0.088, 0.309] unique R2=0.3%
   DEP + thres + nDT + d_mean             b=+0.122 SE=0.101 t(346)=1.20 p=0.2302 CI[-0.078, 0.321] unique R2=0.4%
   DEP + thres + nDT + d_mean + medRT     b=+0.078 SE=0.101 t(345)=0.77 p=0.4417 CI[-0.121, 0.277] unique R2=0.2%
+  BF for group, full ANCOVA: BF10 = 0.296, BF01 = 3.38 | unadjusted group difference (ttestBF): BF10 = 0.88
 
 === 6. BIC ladder ===
   dBIC(4j - 4a): mean +1.952 | median +3.316 | <0 20.8% | <-2 12.3% | >+2 64.7%

@@ -72,6 +72,13 @@ for (fm in list(tau ~ DEP, tau ~ DEP + thres, tau ~ DEP + thres + nDT, tau ~ DEP
       k[1], k[2], m$df.residual, k[3], k[4], ci[1], ci[2], 100 * (summary(m)$r.squared - r0)))
 }
 
+# Bayes factors for the group term (BayesFactor defaults: rscaleFixed = 0.5; JZS t test r = 0.707)
+set.seed(20261010)
+full <- lmBF(tau ~ DEP + thres + nDT + d_mean + medRT, data = x); red <- lmBF(tau ~ thres + nDT + d_mean + medRT, data = x)
+bf_adj <- extractBF(full / red)$bf; bf_raw <- extractBF(ttestBF(x$tau[x$DEP == 1], x$tau[x$DEP == 0]))$bf
+cat(sprintf("  BF for group, full ANCOVA: BF10 = %.3f, BF01 = %.2f | unadjusted group difference (ttestBF): BF10 = %.2f\n",
+            bf_adj, 1 / bf_adj, bf_raw))
+
 cat("\n=== 6. BIC ladder ===\n")
 c4 <- read.csv(file.path(R, "corrected_likelihood_20260819_005659", "fits_4c_static.csv"))
 a4 <- read.csv(file.path(R, "corrected_likelihood_20260819_012638", "fits_4a_static1.csv"))
