@@ -1,12 +1,14 @@
-# Depression and the onset of information in a social decision: code and results
+# Depression, evidence accumulation and caution in a social decision: code and results
 
-This repository reproduces the analyses in *Depression relates to when, and not only how strongly, information enters a social decision*. The paper fits a time-varying drift-diffusion model to ultimatum-game choices and response times from Experiment 4 of Heffner et al. (2021). In that model, a mean reward–emotion signal drives accumulation from the start of the trial, and a reward–emotion contrast signal enters after an onset τ. The model is fitted to 351 adults (205 below and 146 at or above the CES-D cutoff of 16).
+This repository reproduces the analyses in *Depression is associated with weaker evidence accumulation and greater caution during social decision-making*. The paper fits drift-diffusion models to ultimatum-game choices and response times from Experiment 4 of Heffner et al. (2021), in 351 adults (205 below and 146 at or above the CES-D cutoff of 16).
+
+The primary analysis uses a time-stationary baseline model (4a), in which a mean reward–emotion signal drives accumulation for the whole trial. Its drift rate and decision threshold are compared between the groups. The paper then compares this model with two larger ones: a contrast model (4c), which adds a weight for the reward–emotion contrast signal, and a time-contrast model (4j), in which the contrast signal enters only after an onset τ. BIC favours the baseline model. The group difference in τ under the time-contrast model is reported as an exploratory analysis, together with the identifiability and control analyses that bound how it can be read.
 
 The repository contains:
 
 - the likelihood engine (`models/tDDM/tddm_engine.R`, with a C++ version of the time-varying likelihood in `models/tDDM/tddm_split.cpp`) and every script that produces a reported statistic, table, or figure;
 - per-participant parameter estimates for all models and all optimizer runs;
-- the outputs of the identifiability analyses (individual recovery, split-half replication, positive control, negative control, starting-point sensitivity, non-decision-time bounds, response-time and choice signatures);
+- the outputs of the identifiability analyses for the onset τ (individual recovery, split-half replication, positive control, negative control, starting-point sensitivity, non-decision-time bounds, response-time and choice signatures);
 - checks of the likelihood and of the trial simulator;
 - a script that downloads the behavioural data from the original authors and rebuilds the exact files we analysed.
 
@@ -45,51 +47,55 @@ This uses only the files in `results/` and runs no model fits. Logs go to `resul
 bash run_full.sh           # CORES=8 by default
 ```
 
-Refits do not give bit-identical parameter estimates. The fitting scripts use `RNGkind("L'Ecuyer-CMRG")` with `mclapply`, so the random stream each participant receives depends on how participants are distributed over cores. DEoptim also resolves near-ties between candidate solutions differently when two likelihood implementations differ in the tenth decimal place. The group-level results are stable. Supplement S2 reports the spread across the ten runs of the main model, and Section 5 compares the shipped fits with a refit through the public fitting path.
+Refits do not give bit-identical parameter estimates. The fitting scripts use `RNGkind("L'Ecuyer-CMRG")` with `mclapply`, so the random stream each participant receives depends on how participants are distributed over cores. DEoptim also resolves near-ties between candidate solutions differently when two likelihood implementations differ in the tenth decimal place. The group-level results are stable. Supplement S2 reports the spread across the ten runs of the time-contrast model, and Section 5 compares the shipped fits with a refit through the public fitting path.
 
 ## 4. Where each result comes from
 
-`CANON` = `results/tDDM/canonical_4j_accurate_bestof10/fits_4j_accurate_best10.csv`, the main model's per-participant estimates (mean signal first). For each participant it keeps the run with the lowest negative log-likelihood among 10 optimizer runs. The column `tau` holds the fitted value. Every analysis sets τ ≤ 0 to 0, because any τ ≤ 0 gives the same single-phase model.
+The Results report, in order: model-free behaviour, the baseline model's drift and threshold, the model comparison, and the exploratory onset analysis with its controls.
+
+`BASE` = `results/tDDM/corrected_likelihood_20260819_012638/fits_4a_static1.csv`, the baseline model's per-participant estimates. It has no onset, so its likelihood does not involve the split-at-τ integral described in Section 6.
+
+`CANON` = `results/tDDM/canonical_4j_accurate_bestof10/fits_4j_accurate_best10.csv`, the time-contrast model's per-participant estimates (mean signal first). For each participant it keeps the run with the lowest negative log-likelihood among 10 optimizer runs. The column `tau` holds the fitted value. Every analysis sets τ ≤ 0 to 0, because any τ ≤ 0 gives the same single-phase model.
 
 Runtimes are wall-clock times on 8 to 12 cores (Apple M-series).
 
-### Main model and baselines
+### Model fits
 
 | Paper item | Script and command | Output | Time |
 |---|---|---|---|
-| 10 optimizer runs of the main model, seeds 20260821–30 (the runs behind `CANON`) | `Rscript scripts/tDDM/diag_quadrature_refit.R --seed <seed> --cores 12`, once per seed | `results/tDDM/diag_quadrature_refit_20260927_*/fits_4j_accurate_rep01seed.csv` | ~26 min per run |
+| Baseline model 4a (mean signal only, no onset) = `BASE` | `Rscript scripts/tDDM/refit_corrected_likelihood.R --arms 4a_static1` | `BASE` | <1 h |
+| Contrast model 4c (both signals, no onset) | `Rscript scripts/tDDM/refit_corrected_likelihood.R --arms 4c_static` | `results/tDDM/corrected_likelihood_20260819_005659/fits_4c_static.csv` | <1 h |
+| 10 optimizer runs of the time-contrast model 4j, seeds 20260821–30 (the runs behind `CANON`) | `Rscript scripts/tDDM/diag_quadrature_refit.R --seed <seed> --cores 12`, once per seed | `results/tDDM/diag_quadrature_refit_20260927_*/fits_4j_accurate_rep01seed.csv` | ~26 min per run |
 | `CANON` (best of 10) | `Rscript scripts/tDDM/memo_0919/build_accurate_bestrun.R` | `CANON`, `summary.txt` | s |
 | 10 runs with the contrast signal first | `Rscript scripts/tDDM/optimizer_reproducibility.R --orientation contrast --reps 10 --cores 8` | `results/tDDM/optimizer_reproducibility_contrast_r1_20260928_005730/` | ~20 min |
 | Contrast-first best of 10 | `Rscript scripts/tDDM/memo_0919/build_bestof_runs.R --runs-dir <that folder> --out <file>` | `.../canonical_4j_accurate_bestof10/fits_4j_accurate_contrast_first_best10.csv` | s |
-| Baseline 4a (no contrast, no onset) | `Rscript scripts/tDDM/refit_corrected_likelihood.R --arms 4a_static1` | `results/tDDM/corrected_likelihood_20260819_012638/fits_4a_static1.csv` | <1 h |
-| Contrast model 4c (no onset) | `Rscript scripts/tDDM/refit_corrected_likelihood.R --arms 4c_static` | `results/tDDM/corrected_likelihood_20260819_005659/fits_4c_static.csv` | <1 h |
-
-The baselines have no onset, so their likelihood does not involve the split-at-τ integral described in Section 6.
 
 ### Results and Supplement
 
 | Paper item | Script | Output |
 |---|---|---|
-| Group comparisons on drift, contrast weight, threshold, non-decision time, τ | `Rscript scripts/tDDM/group_stats.R --fits CANON` | stdout |
-| Bound rates; τ ≤ 0 share and robustness; CES-D, age, gender; ANCOVA; BIC ladder (Fig. 3) | `Rscript scripts/tDDM/memo_0919/reanalysis_accurate.R` | `.../canonical_4j_accurate_bestof10/reanalysis_accurate.txt` |
 | Model-free behaviour: acceptance, response time, trial-level choice model | `Rscript scripts/tDDM/memo_0919/model_free_bestrun.R` | stdout |
+| Baseline model: group comparisons on drift and threshold (Fig. 3a–b); baseline rows of Tables S9 and S10; lowest-BIC model by group and its χ² test; BIC of the two signal orderings | `Rscript scripts/paper/baseline_primary_accurate.R` | `.../canonical_4j_accurate_bestof10/baseline_primary.txt` |
+| BIC ladder 4a → 4c → 4j (Fig. 4) | `Rscript scripts/tDDM/memo_0919/reanalysis_accurate.R` (section 6) | `.../canonical_4j_accurate_bestof10/reanalysis_accurate.txt` |
+| Time-contrast model: group comparisons on drift, contrast weight, threshold, non-decision time, τ | `Rscript scripts/tDDM/group_stats.R --fits CANON` | stdout |
+| Exploratory onset analysis: bound rates; τ ≤ 0 share and robustness; CES-D, age, gender; ANCOVA and its Bayes factor | `Rscript scripts/tDDM/memo_0919/reanalysis_accurate.R` (sections 1–5) | `.../canonical_4j_accurate_bestof10/reanalysis_accurate.txt` |
 | Table 1 | `Rscript scripts/tDDM/demographics_table.R --fits CANON` | `results/tDDM/cohort_demographics/` |
 | CES-D as a continuous score | `Rscript scripts/tDDM/ces_continuous_correlation.R` | stdout |
 | S1 collinearity of the two signals | `Rscript scripts/paper/s1_collinearity.R` | `results/paper_numbers/` |
 | Table S2 transition-density check | `Rscript scripts/tDDM/verify_transition_density.R` | `results/tDDM/transition_density_check_20260820_003321/` |
 | S2 agreement among the 10 runs | `Rscript scripts/paper/s2_optimizer_runs_accurate.R` | stdout |
-| Tables S3, S4, S6–S10 | `Rscript scripts/paper/supplement_tables_accurate.R` | `.../canonical_4j_accurate_bestof10/supplement_tables.txt` |
+| Tables S3, S4, S6–S8; time-contrast rows of Tables S9 and S10 | `Rscript scripts/paper/supplement_tables_accurate.R` | `.../canonical_4j_accurate_bestof10/supplement_tables.txt` |
 | Table S5, inversion of the observed Δτ, sensitivity ladder (Fig. 7) | `Rscript scripts/tDDM/memo_0919/stage6_summary_accurate.R` | `.../canonical_4j_accurate_bestof10/stage6_summary.txt` |
 | Starting-point bound from acceptance rates (S4, Analysis 6) | `Rscript scripts/tDDM/memo_0919/starting_point_export.R && python scripts/tDDM/memo_0919/starting_point_sensitivity.py` | `results/tDDM/memo_analyses_0919/starting_point_sensitivity_20260927/` (~12 min) |
 
-### Identifiability analyses (Supplement S4)
+### Identifiability analyses for the onset (Supplement S4)
 
 All were run by `scripts/tDDM/memo_0919/run_stage6_accurate_controls.sh` on 8 cores. Its log is `results/tDDM/stage6_accurate/runner.log`. Each simulated participant is fitted three times and the lowest-NLL fit is kept.
 
 | Analysis | Script | Output | Time |
 |---|---|---|---|
 | 1. Individual recovery, 20 and 80 trials (Table S4, Fig. S1) | `recovery_redesign_tau.R --trans image --arms redesign --trials 20,80 --N 50 --reps 3` | `recovery_redesign_tau_20260928_192519/` | 0.4 h |
-| 2. Split-half replication, mean-first and baseline (Fig. 5) | `split_half_predictive.R --K 30 --models 4a,4j_mean_first --trans image --itermax 100 --np 60 --restarts 2` | `split_half_predictive_image_20260928_115546/` | 1.9 h |
+| 2. Split-half replication, baseline drift and mean-first onset (Fig. 5) | `split_half_predictive.R --K 30 --models 4a,4j_mean_first --trans image --itermax 100 --np 60 --restarts 2` | `split_half_predictive_image_20260928_115546/` | 1.9 h |
 | 2. Split-half replication, contrast-first | the same with `--models 4j_contrast_first` | `split_half_predictive_image_20260928_134940/` | 0.7 h |
 | 3. Positive control, 20 trials, 4 levels (Table S7, Fig. 7) | `positive_control_tau.R --reps 10 --gaps 0,0.085,0.169,0.34 --trans image --tau-base 0.804` | `positive_control_tau_20260928_231637/` | 2.2 h |
 | 3. Positive control, 80 trials | the same with `--reps 5 --gaps 0,0.34 --ntrials 80` | `positive_control_tau_20260929_012719/` | 2.9 h |
@@ -109,17 +115,17 @@ All figure scripts write to `docs/PAPER/figures/`.
 | Figure | Script |
 |---|---|
 | 1, 2 (schematics, no data) | `python scripts/visualization/make_schematic_figures.py` |
-| 3, 4, 5 | `python scripts/visualization/make_paper_figures_v2.py` |
+| 3 (group differences: baseline drift and threshold, exploratory onset), 4 (model comparison), 5 (split-half agreement) | `python scripts/visualization/make_paper_figures_v2.py` |
 | 6, 7 | `python scripts/visualization/make_boundary_figures.py` |
 | S1 | `python scripts/tDDM/figS1_individual_recovery.py` |
 | S2 | `python scripts/tDDM/figS2_absolute_fit.py` (run `rt_signature_model_check.R` first; its trial-level file contains observed response times and is not shipped) |
 | S3, S4 | `python scripts/eeg/figs_cesd_and_age.py` |
 
-## 5. Reproducing the main fits through the public fitting path
+## 5. Reproducing the time-contrast fits through the public fitting path
 
 `CANON` was fitted with `scripts/tDDM/diag_quadrature_refit.R`, which evaluates the time-varying likelihood in R. `run_full.sh` fits through the engine instead (`optimizer_reproducibility.R`), which evaluates the same likelihood in C++ and is 10 to 17 times faster. The two implementations agree to within 1.3 × 10⁻¹⁰ in log-likelihood on the stored fits, on 3,000 random parameter points, and on simulated data (`verify_cpp_likelihood.R`, output in `canonical_4j_accurate_bestof10/verify_cpp_likelihood.txt`).
 
-We refitted the main model 10 times through the engine (`results/tDDM/optimizer_reproducibility_mean_r1_20261002_130237/`, 17 minutes on 12 cores) and took the best run per participant with `build_bestof_runs.R`:
+We refitted the time-contrast model 10 times through the engine (`results/tDDM/optimizer_reproducibility_mean_r1_20261002_130237/`, 17 minutes on 12 cores) and took the best run per participant with `build_bestof_runs.R`:
 
 | | Δτ (DEP − HC) | p | mean ΔBIC (4j − 4c) | ΔBIC < 0 | ΔBIC < −2 |
 |---|---|---|---|---|---|

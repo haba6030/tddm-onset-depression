@@ -8,7 +8,7 @@ C=${CORES:-8}
 [ -f data/study4_HC.csv ] || python data/fetch_data.py
 stamp () { ls -dt results/tDDM/"$1"_* | head -1; }
 
-# main model: 10 runs per signal ordering, keep the lowest-NLL run per participant (~20 min each)
+# time-contrast model: 10 runs per signal ordering, keep the lowest-NLL run per participant (~20 min each)
 Rscript scripts/tDDM/optimizer_reproducibility.R --reps 10 --cores "$C"
 Rscript scripts/tDDM/memo_0919/build_bestof_runs.R --runs-dir "$(stamp optimizer_reproducibility_mean_r1)" \
   --out results/tDDM/refit_bestof10/fits_4j_mean_first_best10.csv

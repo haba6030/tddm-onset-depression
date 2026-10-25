@@ -11,11 +11,15 @@ the shipped-density fits (refit_gateB_*), the break-bug 4c file
 manuscript no longer reports: a non-decision-time axis (a ceiling artefact) and
 a 4i comparison forest.
 
-F3  model comparison        onset is close to fit-neutral; the contrast weight
-                            alone buys nothing; the bootstrap null sits where
-                            the observed difference sits
-F4  group differences       three axes: common-signal drift, threshold, onset
+F3  group differences       baseline-model drift and threshold (primary), time-contrast
+                            onset (exploratory, dashed frame)
+F4  model comparison        the baseline model has the lowest BIC
 F5  split-half              direction agreement only, no effect sizes
+
+2026-10-19: reframe (baseline primary, onset exploratory; PI email 2026-10-15).
+Figure numbers swapped to follow the new Results order: group differences is now
+Fig. 3 (panels a-b from the baseline model, f4a) and model comparison is Fig. 4.
+Previous files moved to docs/PAPER/figures/archive/pre_reframe_20261019/.
 """
 import numpy as np, pandas as pd, matplotlib
 matplotlib.use("Agg")
@@ -87,7 +91,7 @@ def stars(p):
     return "***" if p < .001 else "**" if p < .01 else "*" if p < .05 else "n.s."
 
 # =============================================================================
-# F3 — model comparison
+# F4 — model comparison (was F3 before 2026-10-19)
 # =============================================================================
 def fig_model_comparison():
     fig, ax = plt.subplots(figsize=(3.6, 3.5))
@@ -115,15 +119,15 @@ def fig_model_comparison():
     ax.set_ylabel("mean ΔBIC per participant\n(relative to baseline)")
     ax.set_title("Nested model comparison", loc="left")
 
-    fig.savefig(OUT/"F3_model_comparison.png", bbox_inches="tight")
-    fig.savefig(OUT/"F3_model_comparison.pdf", bbox_inches="tight")
+    fig.savefig(OUT/"F4_model_comparison.png", bbox_inches="tight")
+    fig.savefig(OUT/"F4_model_comparison.pdf", bbox_inches="tight")
     plt.close(fig)
-    print(f"  F3  dBIC contrast-baseline {d_ca:+.3f} | time-contrast-baseline {d_ja:+.3f} | time-contrast-contrast {d_jc:+.3f}")
+    print(f"  F4  dBIC contrast-baseline {d_ca:+.3f} | time-contrast-baseline {d_ja:+.3f} | time-contrast-contrast {d_jc:+.3f}")
 
 # =============================================================================
-# F4 — group differences on three axes
+# F3 — group differences (was F4 before 2026-10-19)
 # =============================================================================
-def violin_pair(ax, hc, dep, title, ylabel, highlight=False):
+def violin_pair(ax, hc, dep, title, ylabel, highlight=False, exploratory=False):
     parts = ax.violinplot([hc, dep], positions=[0, 1], widths=0.78,
                           showextrema=False, showmedians=False)
     for pc, c in zip(parts["bodies"], [HC_C, DEP_C]):
@@ -148,23 +152,28 @@ def violin_pair(ax, hc, dep, title, ylabel, highlight=False):
     if highlight:
         for sp in ax.spines.values():
             sp.set_visible(True); sp.set_linewidth(1.3)
+    if exploratory:
+        # dashed frame marks the exploratory parameter (time-contrast model)
+        for sp in ax.spines.values():
+            sp.set_visible(True); sp.set_linewidth(1.0); sp.set_linestyle((0, (4, 2)))
 
 def fig_group_differences():
+    # a-b: baseline model (primary result); c: time-contrast model onset (exploratory)
     fig, axes = plt.subplots(1, 3, figsize=(7.4, 3.2))
-    specs = [("d_mean", "Mean-signal drift", "drift rate", False),
-             ("thres",  "Threshold", "threshold", False),
-             ("tau",    "Estimated onset", "$\\tau$ (s)", True)]
-    for ax, (col, title, yl, hl), lab in zip(axes, specs, "abc"):
-        hc, dep = split_g(f4j, col)
-        violin_pair(ax, hc, dep, title, yl, highlight=hl)
+    specs = [(f4a, "d_mean", "Mean-signal drift", "drift rate", False),
+             (f4a, "thres",  "Threshold", "threshold", False),
+             (f4j, "tau",    "Estimated onset\n(exploratory)", "$\\tau$ (s)", True)]
+    for ax, (src, col, title, yl, expl), lab in zip(axes, specs, "abc"):
+        hc, dep = split_g(src, col)
+        violin_pair(ax, hc, dep, title, yl, exploratory=expl)
         panel_label(ax, lab)
     fig.subplots_adjust(wspace=0.42)
-    fig.savefig(OUT/"F4_group_differences.png", bbox_inches="tight")
-    fig.savefig(OUT/"F4_group_differences.pdf", bbox_inches="tight")
+    fig.savefig(OUT/"F3_group_differences.png", bbox_inches="tight")
+    fig.savefig(OUT/"F3_group_differences.pdf", bbox_inches="tight")
     plt.close(fig)
-    for col in ("d_mean", "thres", "tau"):
-        hc, dep = split_g(f4j, col)
-        print(f"  F4  {col:8s} d={cohen_d(hc,dep)[0]:+.3f} p={stats.ttest_ind(dep,hc,equal_var=False).pvalue:.4f}")
+    for src, name, col in ((f4a, "baseline", "d_mean"), (f4a, "baseline", "thres"), (f4j, "time-contrast", "tau")):
+        hc, dep = split_g(src, col)
+        print(f"  F3  {name:13s} {col:8s} d={cohen_d(hc,dep)[0]:+.3f} p={stats.ttest_ind(dep,hc,equal_var=False).pvalue:.4f}")
 
 # =============================================================================
 # F5 — split-half direction agreement
@@ -200,6 +209,6 @@ def fig_split_half():
     print("  F5  " + " | ".join(f"{m}={v:.1f}%" for m, v in zip(order, vals)))
 
 if __name__ == "__main__":
-    print("building figures on the accurate-integral canonical sources (2026-09-30)")
-    fig_model_comparison(); fig_group_differences(); fig_split_half()
+    print("building figures on the accurate-integral canonical sources (2026-09-30; order 2026-10-19)")
+    fig_group_differences(); fig_model_comparison(); fig_split_half()
     print(f"written to {OUT}")

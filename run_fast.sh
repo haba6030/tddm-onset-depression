@@ -12,9 +12,10 @@ step () {                    # step <label> <command...>; output goes to results
 }
 
 step "C++ vs R likelihood"     Rscript scripts/tDDM/verify_cpp_likelihood.R
-step "group statistics"        Rscript scripts/tDDM/group_stats.R --fits "$CANON"
-step "main-model reanalysis"   Rscript scripts/tDDM/memo_0919/reanalysis_accurate.R
 step "model-free behaviour"    Rscript scripts/tDDM/memo_0919/model_free_bestrun.R
+step "baseline model"          Rscript scripts/paper/baseline_primary_accurate.R
+step "group statistics"        Rscript scripts/tDDM/group_stats.R --fits "$CANON"
+step "time-contrast reanalysis" Rscript scripts/tDDM/memo_0919/reanalysis_accurate.R
 step "demographics (Table 1)"  Rscript scripts/tDDM/demographics_table.R --fits "$CANON"
 step "CES-D continuous"        Rscript scripts/tDDM/ces_continuous_correlation.R
 step "S1 collinearity"         Rscript scripts/paper/s1_collinearity.R
