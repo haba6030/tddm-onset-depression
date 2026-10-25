@@ -32,7 +32,7 @@ SOURCES (2026-09-30: accurate-integral canonical fits and stage-6 controls)
                   participant were attributed, which the run directories do not
                   record.
 
-Run: conda activate hkusrp && python scripts/visualization/make_boundary_figures.py
+Run: python scripts/visualization/make_boundary_figures.py
 """
 import numpy as np, pandas as pd, matplotlib
 matplotlib.use("Agg")

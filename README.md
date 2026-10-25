@@ -35,17 +35,86 @@ The model reads `RPE_scale` and `EPE_X1_scale` (valence prediction error). Respo
 
 ## 2. Regenerate statistics and figures from the shipped fits (about 20 minutes)
 
-```bash
-bash run_fast.sh
-```
+These commands use only the files in `results/` and run no model fits. Figures go to `docs/PAPER/figures/`. Section 4 lists what each command reproduces.
 
-This uses only the files in `results/` and runs no model fits. Logs go to `results/logs/`, figures to `docs/PAPER/figures/`. Section 4 lists what each step reproduces.
+```bash
+CANON=results/tDDM/canonical_4j_accurate_bestof10/fits_4j_accurate_best10.csv
+Rscript scripts/tDDM/verify_cpp_likelihood.R
+Rscript scripts/tDDM/memo_0919/model_free_bestrun.R
+Rscript scripts/paper/baseline_primary_accurate.R
+Rscript scripts/tDDM/group_stats.R --fits "$CANON"
+Rscript scripts/tDDM/memo_0919/reanalysis_accurate.R
+Rscript scripts/tDDM/demographics_table.R --fits "$CANON"
+Rscript scripts/tDDM/ces_continuous_correlation.R
+Rscript scripts/paper/s1_collinearity.R
+Rscript scripts/paper/s2_optimizer_runs_accurate.R
+Rscript scripts/tDDM/memo_0919/stage6_summary_accurate.R
+Rscript scripts/paper/supplement_tables_accurate.R
+Rscript scripts/tDDM/rt_signature_model_check.R --fits "$CANON" --cores 6
+Rscript scripts/tDDM/memo_0919/starting_point_export.R
+python scripts/tDDM/memo_0919/starting_point_sensitivity.py
+
+python scripts/visualization/make_schematic_figures.py      # Figs. 1-2
+python scripts/visualization/make_paper_figures_v2.py       # Figs. 3-5
+python scripts/visualization/make_boundary_figures.py       # Figs. 6-7
+python scripts/tDDM/figS1_individual_recovery.py
+python scripts/tDDM/figS2_absolute_fit.py
+python scripts/eeg/figs_cesd_and_age.py                     # Figs. S3-S4
+```
 
 ## 3. Refit from scratch (about 14 hours on 8 cores)
 
+Each fitting command writes a new timestamped directory under `results/tDDM/`. Set `C` to the number of cores available.
+
 ```bash
-bash run_full.sh           # CORES=8 by default
+C=8
+latest () { ls -dt results/tDDM/"$1"_* | head -1; }
+
+# baseline and contrast models (<1 h each)
+Rscript scripts/tDDM/refit_corrected_likelihood.R --arms 4a_static1
+Rscript scripts/tDDM/refit_corrected_likelihood.R --arms 4c_static
+
+# time-contrast model: 10 runs per signal ordering, best run per participant (~20 min each)
+Rscript scripts/tDDM/optimizer_reproducibility.R --reps 10 --cores $C
+Rscript scripts/tDDM/memo_0919/build_bestof_runs.R --runs-dir "$(latest optimizer_reproducibility_mean_r1)" \
+  --out results/tDDM/refit_bestof10/fits_4j_mean_first_best10.csv
+Rscript scripts/tDDM/optimizer_reproducibility.R --orientation contrast --reps 10 --cores $C
+Rscript scripts/tDDM/memo_0919/build_bestof_runs.R --runs-dir "$(latest optimizer_reproducibility_contrast_r1)" \
+  --out results/tDDM/refit_bestof10/fits_4j_contrast_first_best10.csv
+FITS=results/tDDM/refit_bestof10/fits_4j_mean_first_best10.csv
+
+# simulation analyses (~13 h). --tau-common 0.891 and --tau-base 0.804 are the pooled and the
+# healthy-control mean onsets of the paper's fits with tau <= 0 set to 0; recompute them for new fits.
+Rscript scripts/tDDM/memo_0919/choice_signature_check.R --cores $C
+Rscript scripts/tDDM/rt_signature_model_check.R --fits "$FITS" --cores $C
+Rscript scripts/tDDM/tau_causes_rt_check.R --cores $C
+Rscript scripts/tDDM/split_half_predictive.R --K 30 --models 4a,4j_mean_first --trans image \
+  --itermax 100 --np 60 --restarts 2 --cores $C
+Rscript scripts/tDDM/split_half_predictive.R --K 30 --models 4j_contrast_first --trans image \
+  --itermax 100 --np 60 --restarts 2 --cores $C
+Rscript scripts/tDDM/nulltau_corrected.R --reps 8 --restarts 3 --de-iter 200 --de-np 80 --cores $C \
+  --fits "$FITS" --tau-common 0.891
+Rscript scripts/tDDM/recovery_redesign_tau.R --trans image --arms redesign --trials 20,80 --N 50 \
+  --reps 3 --restarts 3 --cores $C
+Rscript scripts/tDDM/nDT_bound_ladder_engine.R --bounds 1.5,2.0,2.5,3.0,3.5 --de-iter 200 --de-np 80 \
+  --restarts 3 --cores $C
+for gap in 0.05 0.10; do
+  Rscript scripts/tDDM/nulltau_corrected.R --reps 5 --restarts 3 --de-iter 200 --de-np 80 --cores $C \
+    --fits "$FITS" --tau-common 0.891 --wgap $gap
+done
+Rscript scripts/tDDM/positive_control_tau.R --reps 10 --gaps 0,0.085,0.169,0.34 --trans image \
+  --tau-base 0.804 --de-iter 200 --de-np 80 --restarts 3 --cores $C --fits "$FITS"
+Rscript scripts/tDDM/positive_control_tau.R --reps 5 --gaps 0,0.34 --ntrials 80 --trans image \
+  --tau-base 0.804 --de-iter 200 --de-np 80 --restarts 3 --cores $C --fits "$FITS"
+
+# checks of the likelihood and the simulator (minutes each)
+Rscript scripts/tDDM/verify_transition_density.R
+Rscript scripts/tDDM/verify_cpp_likelihood.R
+Rscript scripts/tDDM/diag_simulator_vs_likelihood.R
+Rscript scripts/tDDM/diag_quadrature_spectral.R
 ```
+
+The summary and figure scripts in Section 2 read the shipped run directories. To use new fits, point them at the new directories (Section 4).
 
 Refits do not give bit-identical parameter estimates. The fitting scripts use `RNGkind("L'Ecuyer-CMRG")` with `mclapply`, so the random stream each participant receives depends on how participants are distributed over cores. DEoptim also resolves near-ties between candidate solutions differently when two likelihood implementations differ in the tenth decimal place. The group-level results are stable. Supplement S2 reports the spread across the ten runs of the time-contrast model, and Section 5 compares the shipped fits with a refit through the public fitting path.
 
@@ -90,7 +159,7 @@ Runtimes are wall-clock times on 8 to 12 cores (Apple M-series).
 
 ### Identifiability analyses for the onset (Supplement S4)
 
-All were run by `scripts/tDDM/memo_0919/run_stage6_accurate_controls.sh` on 8 cores. Its log is `results/tDDM/stage6_accurate/runner.log`. Each simulated participant is fitted three times and the lowest-NLL fit is kept.
+All were run on 8 cores with the full commands in Section 3. Each simulated participant is fitted three times and the lowest-NLL fit is kept.
 
 | Analysis | Script | Output | Time |
 |---|---|---|---|
@@ -123,7 +192,7 @@ All figure scripts write to `docs/PAPER/figures/`.
 
 ## 5. Reproducing the time-contrast fits through the public fitting path
 
-`CANON` was fitted with `scripts/tDDM/diag_quadrature_refit.R`, which evaluates the time-varying likelihood in R. `run_full.sh` fits through the engine instead (`optimizer_reproducibility.R`), which evaluates the same likelihood in C++ and is 10 to 17 times faster. The two implementations agree to within 1.3 × 10⁻¹⁰ in log-likelihood on the stored fits, on 3,000 random parameter points, and on simulated data (`verify_cpp_likelihood.R`, output in `canonical_4j_accurate_bestof10/verify_cpp_likelihood.txt`).
+`CANON` was fitted with `scripts/tDDM/diag_quadrature_refit.R`, which evaluates the time-varying likelihood in R. The refit commands in Section 3 fit through the engine instead (`optimizer_reproducibility.R`), which evaluates the same likelihood in C++ and is 10 to 17 times faster. The two implementations agree to within 1.3 × 10⁻¹⁰ in log-likelihood on the stored fits, on 3,000 random parameter points, and on simulated data (`verify_cpp_likelihood.R`, output in `canonical_4j_accurate_bestof10/verify_cpp_likelihood.txt`).
 
 We refitted the time-contrast model 10 times through the engine (`results/tDDM/optimizer_reproducibility_mean_r1_20261002_130237/`, 17 minutes on 12 cores) and took the best run per participant with `build_bestof_runs.R`:
 
@@ -136,7 +205,7 @@ The best negative log-likelihood agreed to within 10⁻⁶ for 84.9% of particip
 
 ## 6. Notes on the likelihood
 
-- `models/tDDM/tddm_engine.R` is the only implementation of the likelihood. The time-varying likelihood integrates the state density at τ (method of images) times the second-phase first-passage density over the evidence level. The engine does this by adaptive Gauss–Kronrod quadrature (relative and absolute tolerance 10⁻⁶) with breakpoints at a distance of min(bsep/4, 20√(t − τ)) from each boundary, because the second-phase density concentrates near the boundaries when a response falls shortly after τ. Supplement S1 describes the method, and `diag_quadrature_spectral.R`, `diag_quadrature_brute.R`, `diag_quadrature_validate.R`, and `diag_quadrature_mc_truth.py` check it against a spectral solution, a brute-force integral, and Monte Carlo simulation.
+- `models/tDDM/tddm_engine.R` is the only implementation of the likelihood. The time-varying likelihood integrates the state density at τ (method of images) times the second-phase first-passage density over the evidence level. The engine does this by adaptive Gauss–Kronrod quadrature (relative and absolute tolerance 10⁻⁶) with breakpoints at a distance of min(bsep/4, 20√(t − τ)) from each boundary, because the second-phase density concentrates near the boundaries when a response falls shortly after τ. Supplement S1 describes the method, and `diag_quadrature_spectral.R` checks it against an independent spectral solution.
 - `TDDM_QUAD` in the engine also accepts `"grid"`, a fixed 30-point rule we used earlier. It overstates the likelihood of a response that falls just after τ, and no reported result uses it. It is kept so that the comparison in `diag_quadrature_refit_*/summary.txt` can be reproduced.
 - The engine's `--trans pipeline` option keeps an earlier transition density that ignored absorption and mis-scaled the diffusion. It exists so that the density comparison in Table S2 can be reproduced. Every reported fit uses `--trans image`.
 - The trial simulator used by the identifiability analyses (`tddm_simulate_trial`, `tddm_simulate_block`) steps in 1 ms, ends a path with the Brownian-bridge probability that it crossed a boundary within the step, and cuts the step at τ. `diag_simulator_vs_likelihood.R` checks its decision-time and choice distributions against the likelihood.

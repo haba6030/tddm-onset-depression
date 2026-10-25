@@ -21,7 +21,7 @@ SOURCE
   results/tDDM/recovery_redesign_tau_20260928_192519  (arm redesign)
   r = -0.077 at 20 trials and +0.406 at 80; error SD 1.155 and 0.765.
 
-Run: conda activate hkusrp && python scripts/tDDM/figS1_individual_recovery.py
+Run: python scripts/tDDM/figS1_individual_recovery.py
 """
 import os
 import numpy as np

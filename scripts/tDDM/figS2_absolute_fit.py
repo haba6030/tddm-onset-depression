@@ -20,7 +20,7 @@ and hugely overstates the |mean| effect -- it produces the textbook diffusion
 pattern (slowest when drift is near zero) that the data do not show.
 
 Source: results/tDDM/rt_signature_check_20260928_005349/
-Run: conda activate hkusrp && python scripts/tDDM/figS2_absolute_fit.py
+Run: python scripts/tDDM/figS2_absolute_fit.py
 """
 import glob
 import os
