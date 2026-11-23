@@ -3,10 +3,15 @@
 Run from the repository root:  python -m pytest tests/
 """
 import re
+import shutil
+import subprocess
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 README = (ROOT / "README.md").read_text(encoding="utf-8")
+REPRODUCE = (ROOT / "reproduce.sh").read_text(encoding="utf-8")
 DOCS = README + "".join((ROOT / d / "README.md").read_text(encoding="utf-8") for d in ("scripts", "results"))
 
 SCRIPT_SUFFIXES = (".R", ".py", ".cpp")
@@ -53,3 +58,32 @@ def test_every_shipped_run_folder_is_documented():
     tracked = [f for f in folders if documented(f)]
     undocumented = sorted(set(folders) - set(tracked))
     assert not undocumented, f"run folders that no README mentions: {undocumented}"
+
+
+def test_readme_images_exist():
+    images = set(re.findall(r"!\[[^\]]*\]\(([^)]+)\)", README)) | set(re.findall(r'<img src="([^"]+)"', README))
+    assert images, "no images found"
+    missing = sorted(i for i in images if not (ROOT / i).is_file())
+    assert not missing, f"README images that do not exist: {missing}"
+
+
+def test_reproduce_script_paths_exist():
+    paths = set(re.findall(r"(?:scripts|data)/[\w./-]+\.(?:R|py)", REPRODUCE))
+    assert len(paths) > 30, f"too few script paths found in reproduce.sh: {len(paths)}"
+    missing = sorted(p for p in paths if not (ROOT / p).is_file())
+    assert not missing, f"reproduce.sh paths that do not exist: {missing}"
+
+
+@pytest.mark.parametrize("stage, n_steps", [("regenerate", 20), ("fits", 6), ("checks", 4), ("validation", 14)])
+def test_reproduce_dry_run_lists_every_step(stage, n_steps):
+    if stage == "validation" and shutil.which("Rscript") is None:
+        pytest.skip("validation reads the fitted onsets with R")
+    out = subprocess.run(["bash", str(ROOT / "reproduce.sh"), stage, "--dry-run", "--cores", "3"],
+                         capture_output=True, text=True, check=True).stdout
+    commands = [line for line in out.splitlines() if line.startswith(("Rscript ", "python "))]
+    assert len(commands) == n_steps, out
+    assert all((ROOT / c.split()[1]).is_file() for c in commands), out
+    if stage in ("fits", "validation"):
+        assert all("--cores 3" in c for c in commands if "--cores" in c)
+    if stage == "validation":
+        assert "--tau-common 0.891" in out and "--tau-base 0.804" in out
