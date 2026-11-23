@@ -34,6 +34,7 @@ SOURCES (2026-09-30: accurate-integral canonical fits and stage-6 controls)
 
 Run: python scripts/visualization/make_boundary_figures.py
 """
+import os
 import numpy as np, pandas as pd, matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -42,7 +43,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 R    = ROOT/"results"/"tDDM"
-OUT  = ROOT/"docs"/"PAPER"/"figures"
+# FIG_OUT, when set, redirects the output so a revision does not overwrite the paper copy
+OUT  = Path(os.environ.get("FIG_OUT") or ROOT/"docs"/"PAPER"/"figures")
 
 plt.rcParams.update({
     "figure.dpi": 150, "savefig.dpi": 300,
@@ -116,20 +118,20 @@ def figF6():
     ax.set_yticks(y); ax.set_yticklabels(lad.step)
     ax.set_ylim(-0.6, len(lad) - 0.4)
     ax.set_xlabel("group onset difference (s)")
-    ax.set_title("Under increasing control", loc="left")
+    ax.set_title("With covariates", loc="left")
     panel_label(ax, "a", dx=-0.42)
 
     ax = axes[1]
     ax.axhline(0, color="black", lw=0.9)
     ax.axhspan(m - 1.96*se, m + 1.96*se, color=NULL_C, alpha=0.15)
-    ax.axhline(m, color=NULL_C, lw=1.6, label="no true gap")
+    ax.axhline(m, color=NULL_C, lw=1.6, label="mean of replications")
     ax.plot(np.arange(1, len(null)+1), null, "o", ms=5, color=NULL_C)
     ax.axhline(OBS_D, color=OBS_C, ls="--", lw=1.3, label="observed")
     ax.set_xticks(range(1, len(null)+1, 2))
     ax.set_ylim(-0.02, 0.42)
-    ax.set_xlabel("replication"); ax.set_ylabel("recovered gap (s)")
+    ax.set_xlabel("replication"); ax.set_ylabel("estimated onset difference (s)")
     ax.legend(loc="upper left", handlelength=1.4)
-    ax.set_title("With no true gap", loc="left")
+    ax.set_title("Negative control", loc="left")
     panel_label(ax, "b", dx=-0.24)
 
     fig.subplots_adjust(wspace=0.55)
@@ -181,12 +183,12 @@ def figF7():
         ax.plot([g], [v.mean()], "o", color="#1b4f72", ms=6, zorder=3)
     xs = np.array([0, 0.73])
     ax.plot(xs, beta[0] + beta[1]*xs, color=TAU_C, lw=1.8, zorder=2, label="fitted")
-    ax.plot(xs, beta[0] + xs, color=REF, ls=":", lw=1.3, label="one to one")
+    ax.plot(xs, beta[0] + xs, color=REF, ls=":", lw=1.3, label="slope 1")   # slope 1 through the fitted bias
     ax.set_xticks([0, 0.2, 0.4, 0.6])   # injected values (0, 0.085, 0.169, 0.34) overlapped as tick labels
     ax.set_xlim(-0.05, 0.75); ax.set_ylim(-0.02, 0.92)
-    ax.set_xlabel("injected gap (s)"); ax.set_ylabel("recovered gap (s)")
+    ax.set_xlabel("injected difference (s)"); ax.set_ylabel("estimated difference (s)")
     ax.legend(loc="upper left", handlelength=1.4)
-    ax.set_title("Response to a true gap", loc="left")
+    ax.set_title("Positive control", loc="left")
     panel_label(ax, "a", dx=-0.30)
 
     ax = axes[1]
@@ -209,13 +211,13 @@ def figF7():
     ax.hist(tru[(tru > -1.5) & (tru < 3.0)], bins=80, color=TAU_C, alpha=.65)   # display range only
     ax.axvline(0, color="black", lw=0.9, ymax=YT)
     ax.axvline(OBS_D, color=OBS_C, ls="--", lw=1.4, ymax=YT, label="observed")
-    ax.axvline(q[1], color=MED_C, lw=1.8, ymax=YT, label="implied")
+    ax.axvline(q[1], color=MED_C, lw=1.8, ymax=YT, label="median")
     for v in (q[0], q[2]):
         ax.axvline(v, color=MED_C, ls=(0, (2, 1.6)), lw=1.1, ymax=YT)
     ax.set_xlim(-1.5, 3.0); ax.set_ylim(0, 1.42*ax.get_ylim()[1]); ax.set_yticks([])
-    ax.set_xlabel("implied true gap (s)"); ax.set_ylabel("draws")
+    ax.set_xlabel("latent onset difference (s)"); ax.set_ylabel("draws")
     ax.legend(loc="upper right", handlelength=1.3)
-    ax.set_title("Inverting the response", loc="left")
+    ax.set_title("Latent onset difference", loc="left")
     panel_label(ax, "c", dx=-0.16)
 
     fig.subplots_adjust(wspace=0.42)

@@ -21,6 +21,7 @@ Figure numbers swapped to follow the new Results order: group differences is now
 Fig. 3 (panels a-b from the baseline model, f4a) and model comparison is Fig. 4.
 Previous files moved to docs/PAPER/figures/archive/pre_reframe_20261019/.
 """
+import os
 import numpy as np, pandas as pd, matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -29,7 +30,9 @@ from scipy import stats
 
 ROOT = Path(__file__).resolve().parents[2]
 RUN  = ROOT/"results"/"tDDM"
-OUT  = ROOT/"docs"/"PAPER"/"figures"
+OUT  = Path(os.environ["FIG_OUT"]) if os.environ.get("FIG_OUT") else ROOT/"docs"/"PAPER"/"figures"
+# FIG_GROUP_LABELS="Low CES-D,High CES-D" changes the displayed group names (2026-11-10)
+GROUP_LO, GROUP_HI = os.environ.get("FIG_GROUP_LABELS", "Low depression,High depression").split(",")
 OUT.mkdir(parents=True, exist_ok=True)
 
 plt.rcParams.update({
@@ -61,6 +64,12 @@ shs  = pd.concat([
     pd.read_csv(RUN/"split_half_predictive_image_20260928_115546/split_half_summary.csv"),
     pd.read_csv(RUN/"split_half_predictive_image_20260928_134940/split_half_summary.csv")],
     ignore_index=True)
+# 2026-11-06: baseline threshold split-half (same settings and seed as the 4a drift run;
+# split 1 reproduced to 3 decimals). Per-parameter agreement is in split_half_agree_by_param.csv.
+_thr = pd.read_csv(RUN/"split_half_predictive_image_20261106_205634/split_half_agree_by_param.csv")
+_thr = _thr[(_thr.model == "4a") & (_thr.param == "thres")].iloc[0]
+shs = pd.concat([shs, pd.DataFrame([{"model": "4a_thres", "sig_param": "thres", "K": int(_thr.K),
+                                     "reliability_agree": _thr.agree / _thr.K}])], ignore_index=True)
 
 def panel_label(ax, letter, dx=-0.16, dy=1.06):
     """Lower-case bold panel label, as Communications Psychology requires for
@@ -146,7 +155,7 @@ def violin_pair(ax, hc, dep, title, ylabel, highlight=False, exploratory=False):
     ybar = yhi + rng*0.11
     ax.plot([0, 0, 1, 1], [ybar, ybar+rng*0.035, ybar+rng*0.035, ybar], lw=0.9, color="k")
     ax.text(0.5, ybar + rng*0.055, stars(p), ha="center", va="bottom", fontsize=9)
-    ax.set_xticks([0, 1]); ax.set_xticklabels(["HC", "DEP"])
+    ax.set_xticks([0, 1]); ax.set_xticklabels([GROUP_LO.replace(" ", "\n", 1), GROUP_HI.replace(" ", "\n", 1)])  # 2026-10-26: group labels follow the abstract
     ax.set_ylabel(ylabel)
     ax.set_title(title, fontweight="bold" if highlight else "normal")
     if highlight:
@@ -179,14 +188,15 @@ def fig_group_differences():
 # F5 — split-half direction agreement
 # =============================================================================
 def fig_split_half():
-    order = ["4a", "4c_mean_static", "4j_mean_first", "4j_contrast_first"]
-    labels = {"4a": "baseline\ndrift", "4c_mean_static": "contrast model\ndrift",
-              "4j_mean_first": "time-contrast $\\tau$\n(mean first)",
-              "4j_contrast_first": "time-contrast $\\tau$\n(contrast first)"}
+    order = ["4a", "4a_thres", "4c_mean_static", "4j_mean_first", "4j_contrast_first"]
+    labels = {"4a": "baseline\ndrift", "4a_thres": "baseline\nthreshold",
+              "4c_mean_static": "contrast model\ndrift",
+              "4j_mean_first": "time-varying $\\tau$\n(mean first)",
+              "4j_contrast_first": "time-varying $\\tau$\n(contrast first)"}
     d = shs.set_index("model")
     order = [m for m in order if m in d.index]
     vals = [d.loc[m, "reliability_agree"]*100 for m in order]
-    fig, ax = plt.subplots(figsize=(5.6, 3.0))
+    fig, ax = plt.subplots(figsize=(6.4, 3.0))
     bars = ax.bar(range(len(order)), vals, color="#8899BB", edgecolor="k",
                   linewidth=0.7, width=0.6)
     K = int(shs.K.iloc[0])
@@ -210,5 +220,9 @@ def fig_split_half():
 
 if __name__ == "__main__":
     print("building figures on the accurate-integral canonical sources (2026-09-30; order 2026-10-19)")
-    fig_group_differences(); fig_model_comparison(); fig_split_half()
+    import sys
+    if "--only-split-half" in sys.argv:          # 2026-11-06: redraw F5 alone
+        fig_split_half()
+    else:
+        fig_group_differences(); fig_model_comparison(); fig_split_half()
     print(f"written to {OUT}")

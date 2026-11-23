@@ -31,11 +31,18 @@ each panel's path stays close to its own mean drift (peak deviation ~0.1a): at a
 excursion the F2 ordering inverts on the page and panel b reads as shallower
 than panel a, which is the opposite of what the panel is there to show.
 
-IN-PANEL TEXT IS DELIBERATELY MINIMAL.  Definitions, parameter counts and model
-names live in the captions in docs/PAPER/v2/02_Methods.md.
+IN-PANEL TEXT IS DELIBERATELY MINIMAL.  Definitions live in the captions.
 F1 uses: Time, Evidence, Accept, Reject, nDT, tau, Phase 1, Phase 2.
 F2 uses: a, b, c, +a, -a, tau.
+
+MERGED FIGURE (2026-11-06, co-author comments C11/C12 on the 1026 docx).
+`figure_model_space()` merges F1 into F2 as the new Fig. 1: the same three
+panels and paths, with each model's name and parameter count above its panel,
+Accept/Reject labels, the nDT bracket in panel a, and the Phase 1/Phase 2
+brackets in panel c.  Written to F1_model_space.{png,pdf}; the old F1/F2 files
+are left untouched.  Run with `--merged` to write only this figure.
 """
+import sys
 import numpy as np, matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -161,6 +168,51 @@ def figure2():
         fig.savefig(OUT/f"F2_model_set.{ext}")
     return fig
 
+# ------------------------------------------------------- merged F1 ---------
+def figure_model_space():
+    xmax = 2.05
+    titles = ["Baseline model (3 parameters)",
+              "Contrast model (4 parameters)",
+              "Time-varying model (5 parameters)"]
+    fig, axes = plt.subplots(1, 3, figsize=(7.09, 2.55))
+    traces = [path(V1, V1, xmax, xmax, seed=6),
+              path(V2, V2, xmax, xmax, seed=19),
+              path(V1, V2, TAU, xmax, seed=9)]
+    for k, (ax, (t, x)) in enumerate(zip(axes, traces)):
+        frame(ax, xmax)
+        ax.set_ylim(-BOUND-0.75, BOUND+1.20)
+        if k == 0:
+            bracket(ax, -NDT, 0, -0.30, "nDT", down=True)
+        if k == 1:
+            ax.plot([0, xmax], [0, V1*xmax], ls=(0, (2.6, 2.2)), lw=0.8, color=GREY, zorder=3)
+        if k == 2:
+            ax.plot([TAU, TAU], [-BOUND, BOUND], ls=(0, (3, 2.4)), lw=0.8, color=INK, zorder=2)
+            ax.text(TAU, -BOUND-0.12, "τ", ha="center", va="top", color=INK, fontproperties=TAU_FONT)
+            t_end = t[-1] if x[-1] >= BOUND else xmax
+            bracket(ax, 0, TAU, BOUND+0.34, "Phase 1")
+            bracket(ax, TAU, t_end, BOUND+0.34, "Phase 2")
+        ax.plot(t, x, color=INK, lw=1.0, zorder=4)
+        if x[-1] >= BOUND:
+            ax.plot([t[-1]], [BOUND], "o", color=INK, ms=3.2, zorder=5)
+        ax.text(-NDT+0.02, BOUND+0.07, "Accept", ha="left", va="bottom", color=INK)
+        ax.text(-NDT+0.02, -BOUND-0.07, "Reject", ha="left", va="top", color=INK)
+        ax.annotate("", xy=(xmax, -BOUND-0.55), xytext=(-NDT, -BOUND-0.55),
+                    arrowprops=dict(arrowstyle="-|>", lw=0.7, color=INK,
+                                    mutation_scale=6, shrinkA=0, shrinkB=0))
+        ax.text(xmax, -BOUND-0.62, "Time", ha="right", va="top", color=INK)
+        ax.text(-NDT-0.16, BOUND+0.88, "abc"[k], ha="left", va="bottom",
+                fontweight="bold", fontsize=9)
+        ax.text(-NDT+0.10, BOUND+0.88, titles[k], ha="left", va="bottom", color=INK)
+
+    fig.subplots_adjust(left=0.015, right=0.995, top=0.90, bottom=0.10, wspace=0.10)
+    for ext in ("png", "pdf"):
+        fig.savefig(OUT/f"F1_model_space.{ext}")
+    return fig
+
 if __name__ == "__main__":
-    plt.close(figure1()); plt.close(figure2())
-    print("wrote", OUT/"F1_model_schematic.png", OUT/"F2_model_set.png")
+    if "--merged" in sys.argv:
+        plt.close(figure_model_space())
+        print("wrote", OUT/"F1_model_space.png")
+    else:
+        plt.close(figure1()); plt.close(figure2()); plt.close(figure_model_space())
+        print("wrote", OUT/"F1_model_schematic.png", OUT/"F2_model_set.png", OUT/"F1_model_space.png")

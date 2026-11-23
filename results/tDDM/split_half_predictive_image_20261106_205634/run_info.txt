@@ -1,0 +1,8 @@
+command: Rscript scripts/tDDM/split_half_predictive.R --K 30 --models 4a
+commit: 89e4e29
+dirty: TRUE
+R: R version 4.4.1 (2024-06-14)
+DEoptim: 2.2.8
+settings: K=30 seed=20260605 cores=12 models=4a trans=image ndt_ub=3.0 itermax_pw=30 np_pw=30 restarts=1 (4a: itermax 120, NP 50, 1 run)
+start: 2026-11-06 20:56:34 KST
+end: 2026-11-06 21:09:14 KST | exit 0

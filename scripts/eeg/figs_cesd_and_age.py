@@ -31,12 +31,18 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 # 2026-09-30: accurate-integral canonical fits; tau <= 0 set to 0 in load().
 FITS = os.path.join(ROOT, "results/tDDM/canonical_4j_accurate_bestof10/fits_4j_accurate_best10.csv")
 ENDTOEND = os.path.join(ROOT, "results/tDDM/end_to_end_4j_nDT3_image_20260810_043550/per_rep_results.csv")
-OUTDIR = os.path.join(ROOT, "docs/PAPER/figures")
+# FIG_OUT, when set, redirects the output so a revision does not overwrite the paper copy
+OUTDIR = os.environ.get("FIG_OUT") or os.path.join(ROOT, "docs/PAPER/figures")
 RT_LO, RT_HI, CUTOFF = 0.15, 10.0, 16
 
 HC_C, DEP_C, LINE_C, GREY = "#3B7DB5", "#D1603D", "#1F1F1F", "#595959"
+# 2026-10-26: displayed group labels follow the abstract; internal codes stay HC/DEP
+# FIG_GROUP_LABELS="Low CES-D,High CES-D" changes the displayed group names (2026-11-10)
+_LO, _HI = os.environ.get("FIG_GROUP_LABELS", "Low depression,High depression").split(",")
+GROUP_LABEL = {"HC": _LO, "DEP": _HI}
+GROUP_DIFF = f"{_HI.split(' ', 1)[0].lower()} − {_LO.split(' ', 1)[0].lower()} {_HI.split(' ', 1)[1]}"
 PARAMS = [("d_mean", "Mean-signal drift"), ("thres", "Threshold"),
-          ("nDT", "Non-decision time (s)"), ("tau", "Fitted onset $\\tau$ (s)"),
+          ("nDT", "Non-decision time (s)"), ("tau", "Estimated onset $\\tau$ (s)"),
           ("d_contrast", "Contrast weight")]
 
 plt.rcParams.update({
@@ -81,6 +87,11 @@ def pstr(p):
     return "p < .001" if p < .001 else f"p = {p:.3f}".replace("0.", ".")
 
 
+def minus(s):
+    """Typographic minus (U+2212) for a printed number, as the axis ticks use."""
+    return s.replace("-", "−")
+
+
 def ols(X, y):
     """Return (betas, ses, ts, ps) for design X (with intercept column)."""
     b, *_ = np.linalg.lstsq(X, y, rcond=None)
@@ -103,7 +114,7 @@ def fig_cesd(m):
         for g, c in (("HC", HC_C), ("DEP", DEP_C)):
             s = m["grp"] == g
             ax.scatter(x[s], y[s], s=15, color=c, alpha=.45, edgecolor="none",
-                       label=f"{g} (n = {s.sum()})", zorder=2)
+                       label=f"{GROUP_LABEL[g]} (n = {s.sum()})", zorder=2)
         xs = np.linspace(x.min(), x.max(), 60)
         b, se, _, _ = ols(np.column_stack([np.ones_like(x), x]), y)
         ax.plot(xs, b[0] + b[1] * xs, color=LINE_C, lw=2, zorder=4)
@@ -116,7 +127,7 @@ def fig_cesd(m):
         ax.fill_between(xs, b[0] + b[1] * xs - half, b[0] + b[1] * xs + half,
                         color=LINE_C, alpha=.13, lw=0, zorder=3)
         ax.axvline(CUTOFF, color=GREY, ls=":", lw=1.3, zorder=1)
-        ax.set_title(f"{label}\nr = {r:+.3f},  {pstr(p)}",
+        ax.set_title(f"{label}\nr = {minus(f'{r:+.3f}')},  {pstr(p)}",
                      fontweight="bold" if p < .05 else "normal", loc="left",
                      color="black" if p < .05 else GREY)
         ax.set_xlabel("CES-D total")
@@ -136,9 +147,10 @@ def fig_cesd(m):
 
 
 # ---------------------------------------------------------------- figure 2
-SHORT = {"Mean-signal drift": "Drift", "Threshold": "Threshold",
-         "Non-decision time (s)": "nDT", "Fitted onset $\\tau$ (s)": "Onset $\\tau$",
-         "Contrast weight": "Contrast"}
+# 2026-11-09: full parameter names in panels b and c, without units
+SHORT = {"Mean-signal drift": "Mean-signal drift", "Threshold": "Threshold",
+         "Non-decision time (s)": "Non-decision time", "Estimated onset $\\tau$ (s)": "Onset $\\tau$",
+         "Contrast weight": "Contrast weight"}
 
 
 def fig_age(m):
@@ -151,7 +163,7 @@ def fig_age(m):
     bins = np.arange(15, 80, 4)
     for g, c in (("HC", HC_C), ("DEP", DEP_C)):
         a = m.loc[m["grp"] == g, "age"]
-        axA.hist(a, bins=bins, alpha=.55, color=c, label=f"{g}: {a.mean():.1f} ({a.std():.1f})")
+        axA.hist(a, bins=bins, alpha=.55, color=c, label=f"{GROUP_LABEL[g]}: {a.mean():.1f} ({a.std():.1f})")
         axA.axvline(a.mean(), color=c, lw=2)
     t, p = stats.ttest_ind(m.loc[m.grp == "DEP", "age"], m.loc[m.grp == "HC", "age"],
                            equal_var=False)
@@ -174,7 +186,7 @@ def fig_age(m):
     axB.tick_params(axis="y", pad=2)
     for yy, rr, pp in zip(ypos, rs, ps):
         inside = rr > .10
-        axB.text(rr - .008 if inside else rr + .010, yy, f"{rr:+.3f}",
+        axB.text(rr - .008 if inside else rr + .010, yy, minus(f"{rr:+.3f}"),
                  va="center", ha="right" if inside else "left", fontsize=8.5,
                  color="white" if inside else "black",
                  fontweight="bold" if pp < .05 else "normal")
@@ -183,24 +195,35 @@ def fig_age(m):
     axB.set_xlabel("r (age, parameter)")
     panel_letter(axB, "b")
 
-    # (C) standardized group effect, unadjusted vs age+gender adjusted
+    # (C) standardized group difference, unadjusted vs age+gender adjusted.
+    # 2026-11-09: the numbers of Table S10 (scripts/paper/supplement_tables_accurate.R).
+    #   unadjusted  Cohen's d with pooled SD (DEP - HC), d +/- 1.96 se with
+    #               se = sqrt((n1+n2)/(n1 n2) + d^2/(2(n1+n2))), Welch t-test p
+    #   adjusted    OLS coefficient on group in z ~ group + age + gender (z standardized
+    #               over the whole sample), t-based 95% CI as R's confint()
     axC = fig.add_subplot(gs[2])
     rows = []
     for k, lb in PARAMS:
+        a_, b_ = m.loc[m["grp"] == "DEP", k].values, m.loc[m["grp"] == "HC", k].values
+        n1, n2 = len(a_), len(b_)
+        sp = np.sqrt(((n1 - 1) * a_.var(ddof=1) + (n2 - 1) * b_.var(ddof=1)) / (n1 + n2 - 2))
+        du = (a_.mean() - b_.mean()) / sp
+        sdu = np.sqrt((n1 + n2) / (n1 * n2) + du ** 2 / (2 * (n1 + n2)))
+        pu = stats.ttest_ind(a_, b_, equal_var=False).pvalue
         y = ((m[k] - m[k].mean()) / m[k].std()).values
         n = len(y)
-        X1 = np.column_stack([np.ones(n), m["dep"].values])
         X2 = np.column_stack([np.ones(n), m["dep"].values,
                               m["age"].values.astype(float), m["gender"].values.astype(float)])
-        b1, se1, _, p1 = ols(X1, y)
         b2, se2, _, p2 = ols(X2, y)
-        rows.append((lb, b1[1], se1[1], p1[1], b2[1], se2[1], p2[1]))
+        tq = stats.t.ppf(.975, n - X2.shape[1])
+        rows.append((lb, du, du - 1.96 * sdu, du + 1.96 * sdu, pu,
+                     b2[1], b2[1] - tq * se2[1], b2[1] + tq * se2[1], p2[1]))
     ypos = np.arange(len(rows))[::-1].astype(float)
-    for i, (lb, bu, su, pu, ba, sa, pa) in enumerate(rows):
+    for i, (lb, bu, lu, hu, pu, ba, la, ha, pa) in enumerate(rows):
         yy = ypos[i]
-        axC.errorbar(bu, yy + .16, xerr=1.96 * su, fmt="o", ms=6, color=GREY,
+        axC.errorbar(bu, yy + .16, xerr=[[bu - lu], [hu - bu]], fmt="o", ms=6, color=GREY,
                      capsize=3, lw=1.5, zorder=3)
-        axC.errorbar(ba, yy - .16, xerr=1.96 * sa, fmt="o", ms=6, color="#8A4B14",
+        axC.errorbar(ba, yy - .16, xerr=[[ba - la], [ha - ba]], fmt="o", ms=6, color="#8A4B14",
                      capsize=3, lw=1.8, zorder=3)
         axC.text(.80, yy + .16, pstr(pu), fontsize=8.5, color=GREY, va="center")
         axC.text(.80, yy - .16, pstr(pa), fontsize=8.5, color="#8A4B14",
@@ -212,7 +235,7 @@ def fig_age(m):
     axC.set_ylim(-0.9, len(rows) - 0.4)
     axC.set_xlim(-.72, 1.20)
     axC.set_xticks([-.5, -.25, 0, .25, .5])
-    axC.set_xlabel("Standardized group effect (DEP − HC), 95% CI")
+    axC.set_xlabel(f"Standardized group difference ({GROUP_DIFF}), 95% CI")
     axC.plot([], [], "o", color=GREY, label="unadjusted")
     axC.plot([], [], "o", color="#8A4B14", label="+ age + gender")
     axC.legend(fontsize=9, frameon=False, loc="lower left", ncol=2,
@@ -222,8 +245,9 @@ def fig_age(m):
     fig.savefig(out, dpi=200, facecolor="white")
     fig.savefig(out.replace(".png", ".pdf"), facecolor="white")
     print("wrote", out)
-    for lb, bu, su, pu, ba, sa, pa in rows:
-        print(f"  {lb:24s} unadj {bu:+.3f} ({pstr(pu)})   adj {ba:+.3f} ({pstr(pa)})")
+    for lb, bu, lu, hu, pu, ba, la, ha, pa in rows:
+        print(f"  {lb:28s} unadj d {bu:+.3f} [{lu:+.3f}, {hu:+.3f}] p {pu:.4f} ({pstr(pu)})"
+              f"   adj b {ba:+.3f} [{la:+.3f}, {ha:+.3f}] p {pa:.4f} ({pstr(pa)})")
 
 
 

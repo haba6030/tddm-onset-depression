@@ -12,7 +12,7 @@ Two changes from figures/labfeedback_2026_08/fig3_rt_mean_contrast.png:
      |contrast| slope looks positive for the model too, and only a
      within-subject analysis shows that the model has it backwards.
   2. The MODEL PREDICTION is drawn.  Each participant's own trials are simulated
-     from their own fitted 4j parameters (5 draws averaged per trial), so the
+     from their own fitted 4j parameters (one simulated draw per observed trial, seed 1), so the
      comparison is like for like.
 
 Result: 4j reproduces the signed mean effect but reverses the |contrast| effect
@@ -42,7 +42,8 @@ elif not os.path.exists(os.path.join(SRC, "trial_level.csv")):
     if not runs:
         sys.exit("run scripts/tDDM/rt_signature_model_check.R first (trial_level.csv not found)")
     SRC = os.path.dirname(runs[-1])
-FIG = os.path.join(ROOT, "docs", "PAPER", "figures")
+# FIG_OUT, when set, redirects the output so a revision does not overwrite the paper copy
+FIG = os.environ.get("FIG_OUT") or os.path.join(ROOT, "docs", "PAPER", "figures")
 os.makedirs(FIG, exist_ok=True)
 
 plt.rcParams.update({
@@ -62,6 +63,8 @@ plt.rcParams.update({
 OBS, MOD = "#1b1b1b", "#1e7a56"
 
 d = pd.read_csv(os.path.join(SRC, "trial_level.csv"))
+# same response-time window as the data and the panel-d replications: simulated RTs outside (0.15, 10] s are dropped
+d.loc[~((d.rt_sim > 0.15) & (d.rt_sim <= 10)), "rt_sim"] = np.nan
 d["abs_mean"] = d.mean_sig.abs()
 d["abs_contrast"] = d.contrast_sig.abs()
 
@@ -82,9 +85,9 @@ def curve(col, nbin=5):
             g["c_rt_sim"].mean(), g["c_rt_sim"].sem())
 
 
-PANELS = [("mean_sig", "a", "Common value", "mean signal"),
-          ("contrast_sig", "b", "Contrast (signed)", "contrast signal"),
-          ("abs_contrast", "c", "Contrast magnitude", "|contrast|")]
+PANELS = [("mean_sig", "a", "Mean signal", "mean signal"),
+          ("contrast_sig", "b", "Signed contrast", "contrast signal"),
+          ("abs_contrast", "c", "Absolute contrast", "|contrast|")]
 
 fig, ax = plt.subplots(1, 4, figsize=(7.2, 2.3), constrained_layout=True)
 
@@ -95,7 +98,7 @@ for k, (col, tag, title, xlab) in enumerate(PANELS):
     a.errorbar(x, mo, yerr=1.96 * so, fmt="o-", color=OBS, lw=1.5, ms=4.5,
                capsize=2.5, label="observed")
     a.errorbar(x, mm, yerr=1.96 * sm, fmt="s--", color=MOD, lw=1.5, ms=4,
-               capsize=2.5, label="4j prediction")
+               capsize=2.5, label="model (simulated)")
     a.set_xlabel(xlab)
     if k == 0:
         a.set_ylabel("log RT, within-subject")
@@ -116,7 +119,7 @@ obs_b = [cmp.loc[cmp.term == t, "observed"].iloc[0] for t in TERMS]
 mod_b = [sim[t].mean() for t in TERMS]
 mod_e = [1.96 * sim[t].std(ddof=1) for t in TERMS]
 a.errorbar(mod_b, y + .13, xerr=mod_e, fmt="s", color=MOD, ms=4.5, capsize=2.5,
-           label="4j prediction")
+           label="model (simulated)")
 a.plot(obs_b, y - .13, "o", color=OBS, ms=5, label="observed")
 a.set_yticks(y); a.set_yticklabels(LAB)
 a.set_xlabel("β on log RT")

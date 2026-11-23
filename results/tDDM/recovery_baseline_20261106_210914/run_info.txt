@@ -1,0 +1,8 @@
+command: Rscript scripts/tDDM/recovery_baseline.R --N 50 --reps 3 --restarts 3 --trials 20,80
+commit: 89e4e29
+dirty: TRUE
+R: R version 4.4.1 (2024-06-14)
+DEoptim: 2.2.8
+settings: trials=20,80 N=50 reps=3 restarts=3 itermax=200 NP=80 cores=12 lo=(-3,0.5,0.01) up=(3,4,3)
+start: 2026-11-06 21:09:14 KST
+end: 2026-11-06 21:39:58 KST | exit 0

@@ -28,6 +28,9 @@ args <- commandArgs(trailingOnly = TRUE)
 ga <- function(f, d) { i <- which(args == f); if (length(i) == 1 && i < length(args)) as.numeric(args[i + 1]) else d }
 N_REP <- ga("--reps", 5)
 NC    <- ga("--cores", 4)
+# 2026-11-07: --clamp-first sets fitted tau <= 0 to 0 BEFORE adding the delay, matching the
+# manuscript (tau <= 0 -> 0 everywhere). Default (off) adds the delay to the raw fitted tau.
+CLAMP_FIRST <- "--clamp-first" %in% args
 
 sd_ <- tryCatch(dirname(sys.frame(1)$ofile), error = function(e) {
   ca <- commandArgs(FALSE); fa <- sub("^--file=", "", ca[grep("^--file=", ca)])
@@ -51,7 +54,7 @@ for (i in seq_len(nrow(fits))) {
   if (nrow(tr) < 5) next
   subj[[length(subj) + 1]] <- list(d1 = fits$d_mean[i], d2 = fits$d_contrast[i],
                                    th = fits$thres[i], nDT = fits$nDT[i],
-                                   grp = fits$group[i], tau = fits$tau[i],
+                                   grp = fits$group[i], tau = if (CLAMP_FIRST) max(fits$tau[i], 0) else fits$tau[i],
                                    s1 = tr$mean_sig, s2 = tr$contrast_sig)
 }
 cat(sprintf("=== Does tau move median RT?  (forward simulation, no fitting) ===\n"))
@@ -105,7 +108,12 @@ cat("\n  If this share is small, most of the tau-RT link is the ESTIMATOR readin
 cat("  geometry, and the over-control argument does not rescue the group effect.\n")
 
 ts <- format(Sys.time(), "%Y%m%d_%H%M%S")
-od <- file.path(RESULTS_DIR, "tDDM", sprintf("tau_causes_rt_%s", ts))
+od <- file.path(RESULTS_DIR, "tDDM", sprintf("tau_causes_rt_%s%s", if (CLAMP_FIRST) "clampfirst_" else "", ts))
 dir.create(od, recursive = TRUE, showWarnings = FALSE)
 write.csv(res, file.path(od, "per_rep.csv"), row.names = FALSE)
+writeLines(c(paste("command: Rscript scripts/tDDM/tau_causes_rt_check.R", paste(args, collapse = " ")),
+             paste("commit:", tryCatch(system("git rev-parse --short HEAD", intern = TRUE), error = function(e) NA)),
+             paste("host:", Sys.info()[["nodename"]]), paste("R:", R.version.string),
+             sprintf("reps=%d cores=%d clamp_first=%s", N_REP, NC, CLAMP_FIRST),
+             paste("end:", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))), file.path(od, "run_info.txt"))
 cat(sprintf("\nOutput: %s\n", od))

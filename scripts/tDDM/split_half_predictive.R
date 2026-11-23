@@ -337,6 +337,15 @@ run_one_split <- function(k) {
       oos_nll = (nll_HC_tot + nll_DEP_tot) / (nrow(th_HC) + nrow(th_DEP)),
       stringsAsFactors = FALSE
     )
+    # 2026-11-06: group difference and sign agreement for EVERY parameter, not only
+    # sig_param (needed for the threshold split-half of the baseline model).
+    for (p in m$pnames) {
+      df_p <- mean(f_fit[[p]][f_fit$isHC == 1])  - mean(f_fit[[p]][f_fit$isHC == 0])
+      dt_p <- mean(f_test[[p]][f_test$isHC == 1]) - mean(f_test[[p]][f_test$isHC == 0])
+      row[[paste0("delta_fit_", p)]]  <- df_p
+      row[[paste0("delta_test_", p)]] <- dt_p
+      row[[paste0("agree_", p)]]      <- as.integer(sign(df_p) == sign(dt_p) && df_p != 0)
+    }
 
     # 4a-only: analytical accept-rate & RT-median prediction vs observed (test)
     if (mid == "4a") {
@@ -389,6 +398,15 @@ ts <- format(Sys.time(), "%Y%m%d_%H%M%S")
 outdir <- file.path(RESULT_ROOT, sprintf("split_half_predictive_%s_%s", TRANS_MODE, ts)); dir.create(outdir, recursive = TRUE)
 per_split_path <- file.path(outdir, "split_half_per_split.csv")
 cat(sprintf("  Output dir (incremental): %s\n", outdir)); flush.console()
+writeLines(c(paste("command: Rscript scripts/tDDM/split_half_predictive.R", paste(args, collapse = " ")),
+             paste("commit:", tryCatch(system("git rev-parse --short HEAD", intern = TRUE), error = function(e) NA)),
+             paste("dirty:", length(tryCatch(system("git status --porcelain scripts models", intern = TRUE), error = function(e) NULL)) > 0),
+             paste("host:", Sys.info()[["nodename"]]), paste("R:", R.version.string),
+             paste("DEoptim:", as.character(packageVersion("DEoptim"))),
+             sprintf("settings: K=%d seed=%d cores=%d models=%s trans=%s ndt_ub=%.1f itermax_pw=%d np_pw=%d restarts=%d (4a: itermax 120, NP 50, 1 run)",
+                     K_SPLITS, SEED, N_CORES, paste(SEL_MODELS, collapse = ","), TRANS_MODE, NDT_UB, IT_PW, NP_PW, RESTARTS),
+             paste("start:", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))),
+           file.path(outdir, "run_info.txt"))
 
 t_start <- Sys.time()
 all_rows <- list()
@@ -456,4 +474,14 @@ summ <- do.call(rbind, lapply(SEL_MODELS, function(mid) {
              oos_nll = m_(r$oos_nll))
 }))
 write.csv(summ, file.path(outdir, "split_half_summary.csv"), row.names = FALSE)
+agr <- grep("^agree_", names(res), value = TRUE)
+if (length(agr)) {
+  pp <- do.call(rbind, lapply(SEL_MODELS, function(mid) { r <- res[res$model == mid, ]
+    do.call(rbind, lapply(agr, function(a) if (all(is.na(r[[a]]))) NULL else data.frame(
+      model = mid, param = sub("^agree_", "", a), K = sum(!is.na(r[[a]])), agree = sum(r[[a]], na.rm = TRUE),
+      delta_fit = m_(r[[sub("^agree_", "delta_fit_", a)]]), delta_test = m_(r[[sub("^agree_", "delta_test_", a)]])))) }))
+  write.csv(pp, file.path(outdir, "split_half_agree_by_param.csv"), row.names = FALSE); print(pp)
+}
+cat(paste("end:", format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"), "| exit 0\n"),
+    file = file.path(outdir, "run_info.txt"), append = TRUE)
 cat(sprintf("\nResults saved to: %s\nDone!\n", outdir))

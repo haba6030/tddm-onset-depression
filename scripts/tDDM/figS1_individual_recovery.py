@@ -19,7 +19,7 @@ script rebuilds it from the canonical CSVs.
 
 SOURCE
   results/tDDM/recovery_redesign_tau_20260928_192519  (arm redesign)
-  r = -0.077 at 20 trials and +0.406 at 80; error SD 1.155 and 0.765.
+  r = -0.018 at 20 trials and +0.207 at 80; error SD 1.175 and 1.013 (recovery_redesign_tau_20260928_192519).
 
 Run: python scripts/tDDM/figS1_individual_recovery.py
 """
@@ -32,7 +32,8 @@ import matplotlib.pyplot as plt
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 R    = os.path.join(ROOT, "results", "tDDM")
-FIG  = os.path.join(ROOT, "docs", "PAPER", "figures")
+# FIG_OUT, when set, redirects the output so a revision does not overwrite the paper copy
+FIG  = os.environ.get("FIG_OUT") or os.path.join(ROOT, "docs", "PAPER", "figures")
 
 plt.rcParams.update({
     "figure.dpi": 200, "savefig.dpi": 300,
@@ -100,7 +101,7 @@ def figS1():
                 transform=ax.transAxes,
                 va="top", ha="left")
         panel_title(ax, letter, f"{n} trials", dx=-0.20)
-    axes[0].set_ylabel(f"recovered {TAU} (s)")
+    axes[0].set_ylabel(f"estimated {TAU} (s)")
 
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.06))

@@ -4,6 +4,8 @@ data/*.csv
 docs/PAPER/figures/*.png
 docs/PAPER/figures/*.pdf
 results/logs/
+results/paper_numbers/
+results/tDDM/cohort_demographics/
 results/tDDM/rt_signature_check_*/trial_level.csv
 results/tDDM/memo_analyses_0919/starting_point_sensitivity_*/trials.csv
 # compiled C++ likelihood (Rcpp::sourceCpp cache)
